@@ -73,9 +73,7 @@ def str_validator(v: Any) -> Union[str]:
 
 
 def strict_str_validator(v: Any) -> Union[str]:
-    if isinstance(v, str) and not isinstance(v, Enum):
-        return v
-    raise errors.StrError()
+    pass
 
 
 def bytes_validator(v: Any) -> Union[bytes]:
@@ -92,12 +90,7 @@ def bytes_validator(v: Any) -> Union[bytes]:
 
 
 def strict_bytes_validator(v: Any) -> Union[bytes]:
-    if isinstance(v, bytes):
-        return v
-    elif isinstance(v, bytearray):
-        return bytes(v)
-    else:
-        raise errors.BytesError()
+    pass
 
 
 BOOL_FALSE = {0, '0', 'off', 'f', 'false', 'n', 'no'}
@@ -105,20 +98,7 @@ BOOL_TRUE = {1, '1', 'on', 't', 'true', 'y', 'yes'}
 
 
 def bool_validator(v: Any) -> bool:
-    if v is True or v is False:
-        return v
-    if isinstance(v, bytes):
-        v = v.decode()
-    if isinstance(v, str):
-        v = v.lower()
-    try:
-        if v in BOOL_TRUE:
-            return True
-        if v in BOOL_FALSE:
-            return False
-    except TypeError:
-        raise errors.BoolError()
-    raise errors.BoolError()
+    pass
 
 
 # matches the default limit cpython, see https://github.com/python/cpython/pull/96500
@@ -126,78 +106,31 @@ max_str_int = 4_300
 
 
 def int_validator(v: Any) -> int:
-    if isinstance(v, int) and not (v is True or v is False):
-        return v
-
-    # see https://github.com/pydantic/pydantic/issues/1477 and in turn, https://github.com/python/cpython/issues/95778
-    # this check should be unnecessary once patch releases are out for 3.7, 3.8, 3.9 and 3.10
-    # but better to check here until then.
-    # NOTICE: this does not fully protect user from the DOS risk since the standard library JSON implementation
-    # (and other std lib modules like xml) use `int()` and are likely called before this, the best workaround is to
-    # 1. update to the latest patch release of python once released, 2. use a different JSON library like ujson
-    if isinstance(v, (str, bytes, bytearray)) and len(v) > max_str_int:
-        raise errors.IntegerError()
-
-    try:
-        return int(v)
-    except (TypeError, ValueError, OverflowError):
-        raise errors.IntegerError()
+    pass
 
 
 def strict_int_validator(v: Any) -> int:
-    if isinstance(v, int) and not (v is True or v is False):
-        return v
-    raise errors.IntegerError()
+    pass
 
 
 def float_validator(v: Any) -> float:
-    if isinstance(v, float):
-        return v
-
-    try:
-        return float(v)
-    except (TypeError, ValueError):
-        raise errors.FloatError()
+    pass
 
 
 def strict_float_validator(v: Any) -> float:
-    if isinstance(v, float):
-        return v
-    raise errors.FloatError()
+    pass
 
 
 def float_finite_validator(v: 'Number', field: 'ModelField', config: 'BaseConfig') -> 'Number':
-    allow_inf_nan = getattr(field.type_, 'allow_inf_nan', None)
-    if allow_inf_nan is None:
-        allow_inf_nan = config.allow_inf_nan
-
-    if allow_inf_nan is False and (math.isnan(v) or math.isinf(v)):
-        raise errors.NumberNotFiniteError()
-    return v
+    pass
 
 
 def number_multiple_validator(v: 'Number', field: 'ModelField') -> 'Number':
-    field_type: ConstrainedNumber = field.type_
-    if field_type.multiple_of is not None:
-        mod = float(v) / float(field_type.multiple_of) % 1
-        if not almost_equal_floats(mod, 0.0) and not almost_equal_floats(mod, 1.0):
-            raise errors.NumberNotMultipleError(multiple_of=field_type.multiple_of)
-    return v
+    pass
 
 
 def number_size_validator(v: 'Number', field: 'ModelField') -> 'Number':
-    field_type: ConstrainedNumber = field.type_
-    if field_type.gt is not None and not v > field_type.gt:
-        raise errors.NumberNotGtError(limit_value=field_type.gt)
-    elif field_type.ge is not None and not v >= field_type.ge:
-        raise errors.NumberNotGeError(limit_value=field_type.ge)
-
-    if field_type.lt is not None and not v < field_type.lt:
-        raise errors.NumberNotLtError(limit_value=field_type.lt)
-    if field_type.le is not None and not v <= field_type.le:
-        raise errors.NumberNotLeError(limit_value=field_type.le)
-
-    return v
+    pass
 
 
 def constant_validator(v: 'Any', field: 'ModelField') -> 'Any':
@@ -207,46 +140,27 @@ def constant_validator(v: 'Any', field: 'ModelField') -> 'Any':
     of the field. This is to support the keyword of the same name in JSON
     Schema.
     """
-    if v != field.default:
-        raise errors.WrongConstantError(given=v, permitted=[field.default])
-
-    return v
+    pass
 
 
 def anystr_length_validator(v: 'StrBytes', config: 'BaseConfig') -> 'StrBytes':
-    v_len = len(v)
-
-    min_length = config.min_anystr_length
-    if v_len < min_length:
-        raise errors.AnyStrMinLengthError(limit_value=min_length)
-
-    max_length = config.max_anystr_length
-    if max_length is not None and v_len > max_length:
-        raise errors.AnyStrMaxLengthError(limit_value=max_length)
-
-    return v
+    pass
 
 
 def anystr_strip_whitespace(v: 'StrBytes') -> 'StrBytes':
-    return v.strip()
+    pass
 
 
 def anystr_upper(v: 'StrBytes') -> 'StrBytes':
-    return v.upper()
+    pass
 
 
 def anystr_lower(v: 'StrBytes') -> 'StrBytes':
-    return v.lower()
+    pass
 
 
 def ordered_dict_validator(v: Any) -> 'AnyOrderedDict':
-    if isinstance(v, OrderedDict):
-        return v
-
-    try:
-        return OrderedDict(v)
-    except (TypeError, ValueError):
-        raise errors.DictError()
+    pass
 
 
 def dict_validator(v: Any) -> Dict[Any, Any]:
@@ -260,127 +174,47 @@ def dict_validator(v: Any) -> Dict[Any, Any]:
 
 
 def list_validator(v: Any) -> List[Any]:
-    if isinstance(v, list):
-        return v
-    elif sequence_like(v):
-        return list(v)
-    else:
-        raise errors.ListError()
+    pass
 
 
 def tuple_validator(v: Any) -> Tuple[Any, ...]:
-    if isinstance(v, tuple):
-        return v
-    elif sequence_like(v):
-        return tuple(v)
-    else:
-        raise errors.TupleError()
+    pass
 
 
 def set_validator(v: Any) -> Set[Any]:
-    if isinstance(v, set):
-        return v
-    elif sequence_like(v):
-        return set(v)
-    else:
-        raise errors.SetError()
+    pass
 
 
 def frozenset_validator(v: Any) -> FrozenSet[Any]:
-    if isinstance(v, frozenset):
-        return v
-    elif sequence_like(v):
-        return frozenset(v)
-    else:
-        raise errors.FrozenSetError()
+    pass
 
 
 def deque_validator(v: Any) -> Deque[Any]:
-    if isinstance(v, deque):
-        return v
-    elif sequence_like(v):
-        return deque(v)
-    else:
-        raise errors.DequeError()
+    pass
 
 
 def enum_member_validator(v: Any, field: 'ModelField', config: 'BaseConfig') -> Enum:
-    try:
-        enum_v = field.type_(v)
-    except ValueError:
-        # field.type_ should be an enum, so will be iterable
-        raise errors.EnumMemberError(enum_values=list(field.type_))
-    return enum_v.value if config.use_enum_values else enum_v
+    pass
 
 
 def uuid_validator(v: Any, field: 'ModelField') -> UUID:
-    try:
-        if isinstance(v, str):
-            v = UUID(v)
-        elif isinstance(v, (bytes, bytearray)):
-            try:
-                v = UUID(v.decode())
-            except ValueError:
-                # 16 bytes in big-endian order as the bytes argument fail
-                # the above check
-                v = UUID(bytes=v)
-    except ValueError:
-        raise errors.UUIDError()
-
-    if not isinstance(v, UUID):
-        raise errors.UUIDError()
-
-    required_version = getattr(field.type_, '_required_version', None)
-    if required_version and v.version != required_version:
-        raise errors.UUIDVersionError(required_version=required_version)
-
-    return v
+    pass
 
 
 def decimal_validator(v: Any) -> Decimal:
-    if isinstance(v, Decimal):
-        return v
-    elif isinstance(v, (bytes, bytearray)):
-        v = v.decode()
-
-    v = str(v).strip()
-
-    try:
-        v = Decimal(v)
-    except DecimalException:
-        raise errors.DecimalError()
-
-    if not v.is_finite():
-        raise errors.DecimalIsNotFiniteError()
-
-    return v
+    pass
 
 
 def hashable_validator(v: Any) -> Hashable:
-    if isinstance(v, Hashable):
-        return v
-
-    raise errors.HashableError()
+    pass
 
 
 def ip_v4_address_validator(v: Any) -> IPv4Address:
-    if isinstance(v, IPv4Address):
-        return v
-
-    try:
-        return IPv4Address(v)
-    except ValueError:
-        raise errors.IPv4AddressError()
+    pass
 
 
 def ip_v6_address_validator(v: Any) -> IPv6Address:
-    if isinstance(v, IPv6Address):
-        return v
-
-    try:
-        return IPv6Address(v)
-    except ValueError:
-        raise errors.IPv6AddressError()
+    pass
 
 
 def ip_v4_network_validator(v: Any) -> IPv4Network:
@@ -390,13 +224,7 @@ def ip_v4_network_validator(v: Any) -> IPv4Network:
     See more:
     https://docs.python.org/library/ipaddress.html#ipaddress.IPv4Network
     """
-    if isinstance(v, IPv4Network):
-        return v
-
-    try:
-        return IPv4Network(v)
-    except ValueError:
-        raise errors.IPv4NetworkError()
+    pass
 
 
 def ip_v6_network_validator(v: Any) -> IPv6Network:
@@ -406,50 +234,23 @@ def ip_v6_network_validator(v: Any) -> IPv6Network:
     See more:
     https://docs.python.org/library/ipaddress.html#ipaddress.IPv6Network
     """
-    if isinstance(v, IPv6Network):
-        return v
-
-    try:
-        return IPv6Network(v)
-    except ValueError:
-        raise errors.IPv6NetworkError()
+    pass
 
 
 def ip_v4_interface_validator(v: Any) -> IPv4Interface:
-    if isinstance(v, IPv4Interface):
-        return v
-
-    try:
-        return IPv4Interface(v)
-    except ValueError:
-        raise errors.IPv4InterfaceError()
+    pass
 
 
 def ip_v6_interface_validator(v: Any) -> IPv6Interface:
-    if isinstance(v, IPv6Interface):
-        return v
-
-    try:
-        return IPv6Interface(v)
-    except ValueError:
-        raise errors.IPv6InterfaceError()
+    pass
 
 
 def path_validator(v: Any) -> Path:
-    if isinstance(v, Path):
-        return v
-
-    try:
-        return Path(v)
-    except TypeError:
-        raise errors.PathError()
+    pass
 
 
 def path_exists_validator(v: Any) -> Path:
-    if not v.exists():
-        raise errors.PathNotExistsError(path=v)
-
-    return v
+    pass
 
 
 def callable_validator(v: Any) -> AnyCallable:
@@ -458,24 +259,15 @@ def callable_validator(v: Any) -> AnyCallable:
 
     Note: complete matching of argument type hints and return types is not performed
     """
-    if callable(v):
-        return v
-
-    raise errors.CallableError(value=v)
+    pass
 
 
 def enum_validator(v: Any) -> Enum:
-    if isinstance(v, Enum):
-        return v
-
-    raise errors.EnumError(value=v)
+    pass
 
 
 def int_enum_validator(v: Any) -> IntEnum:
-    if isinstance(v, IntEnum):
-        return v
-
-    raise errors.IntEnumError(value=v)
+    pass
 
 
 def make_literal_validator(type_: Any) -> Callable[[Any], Any]:
@@ -487,10 +279,7 @@ def make_literal_validator(type_: Any) -> Callable[[Any], Any]:
     allowed_choices = {v: v for v in permitted_choices}
 
     def literal_validator(v: Any) -> Any:
-        try:
-            return allowed_choices[v]
-        except (KeyError, TypeError):
-            raise errors.WrongConstantError(given=v, permitted=permitted_choices)
+        pass
 
     return literal_validator
 
@@ -510,26 +299,15 @@ def constr_length_validator(v: 'StrBytes', field: 'ModelField', config: 'BaseCon
 
 
 def constr_strip_whitespace(v: 'StrBytes', field: 'ModelField', config: 'BaseConfig') -> 'StrBytes':
-    strip_whitespace = field.type_.strip_whitespace or config.anystr_strip_whitespace
-    if strip_whitespace:
-        v = v.strip()
-
-    return v
+    pass
 
 
 def constr_upper(v: 'StrBytes', field: 'ModelField', config: 'BaseConfig') -> 'StrBytes':
-    upper = field.type_.to_upper or config.anystr_upper
-    if upper:
-        v = v.upper()
-
-    return v
+    pass
 
 
 def constr_lower(v: 'StrBytes', field: 'ModelField', config: 'BaseConfig') -> 'StrBytes':
-    lower = field.type_.to_lower or config.anystr_lower
-    if lower:
-        v = v.lower()
-    return v
+    pass
 
 
 def validate_json(v: Any, config: 'BaseConfig') -> Any:
@@ -549,44 +327,28 @@ T = TypeVar('T')
 
 def make_arbitrary_type_validator(type_: Type[T]) -> Callable[[T], T]:
     def arbitrary_type_validator(v: Any) -> T:
-        if isinstance(v, type_):
-            return v
-        raise errors.ArbitraryTypeError(expected_arbitrary_type=type_)
+        pass
 
     return arbitrary_type_validator
 
 
 def make_class_validator(type_: Type[T]) -> Callable[[Any], Type[T]]:
     def class_validator(v: Any) -> Type[T]:
-        if lenient_issubclass(v, type_):
-            return v
-        raise errors.SubclassError(expected_class=type_)
+        pass
 
     return class_validator
 
 
 def any_class_validator(v: Any) -> Type[T]:
-    if isinstance(v, type):
-        return v
-    raise errors.ClassError()
+    pass
 
 
 def none_validator(v: Any) -> 'Literal[None]':
-    if v is None:
-        return v
-    raise errors.NotNoneError()
+    pass
 
 
 def pattern_validator(v: Any) -> Pattern[str]:
-    if isinstance(v, Pattern):
-        return v
-
-    str_value = str_validator(v)
-
-    try:
-        return re.compile(str_value)
-    except re.error:
-        raise errors.PatternError()
+    pass
 
 
 NamedTupleT = TypeVar('NamedTupleT', bound=NamedTuple)
@@ -605,14 +367,7 @@ def make_namedtuple_validator(
     namedtuple_cls.__pydantic_model__ = NamedTupleModel  # type: ignore[attr-defined]
 
     def namedtuple_validator(values: Tuple[Any, ...]) -> NamedTupleT:
-        annotations = NamedTupleModel.__annotations__
-
-        if len(values) > len(annotations):
-            raise errors.ListMaxLengthError(limit_value=len(annotations))
-
-        dict_values: Dict[str, Any] = dict(zip(annotations, values))
-        validated_dict_values: Dict[str, Any] = dict(NamedTupleModel(**dict_values))
-        return namedtuple_cls(**validated_dict_values)
+        pass
 
     return namedtuple_validator
 
@@ -630,7 +385,7 @@ def make_typeddict_validator(
     typeddict_cls.__pydantic_model__ = TypedDictModel  # type: ignore[attr-defined]
 
     def typeddict_validator(values: 'TypedDict') -> Dict[str, Any]:  # type: ignore[valid-type]
-        return TypedDictModel.parse_obj(values).dict(exclude_unset=True)
+        pass
 
     return typeddict_validator
 

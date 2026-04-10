@@ -383,15 +383,15 @@ class GenerateSchema:
 
     @property
     def _config_wrapper(self) -> ConfigWrapper:
-        return self._config_wrapper_stack.tail
+        pass
 
     @property
     def _types_namespace(self) -> NamespacesTuple:
-        return self._ns_resolver.types_namespace
+        pass
 
     @property
     def _arbitrary_types(self) -> bool:
-        return self._config_wrapper.arbitrary_types_allowed
+        pass
 
     # the following methods can be overridden but should be considered
     # unstable / private APIs
@@ -437,10 +437,7 @@ class GenerateSchema:
         if cases:
 
             def get_json_schema(schema: CoreSchema, handler: GetJsonSchemaHandler) -> JsonSchemaValue:
-                json_schema = handler(schema)
-                original_schema = handler.resolve_ref_schema(json_schema)
-                original_schema.update(js_updates)
-                return json_schema
+                pass
 
             # we don't want to add the missing to the schema if it's the default one
             default_missing = getattr(enum_type._missing_, '__func__', None) is Enum._missing_.__func__  # pyright: ignore[reportFunctionMemberAccess]
@@ -463,10 +460,7 @@ class GenerateSchema:
         else:
 
             def get_json_schema_no_cases(_, handler: GetJsonSchemaHandler) -> JsonSchemaValue:
-                json_schema = handler(core_schema.enum_schema(enum_type, cases, sub_type=sub_type, ref=enum_ref))
-                original_schema = handler.resolve_ref_schema(json_schema)
-                original_schema.update(js_updates)
-                return json_schema
+                pass
 
             # Use an isinstance check for enums with no cases.
             # The most important use case for this is creating TypeVar bounds for generics that should
@@ -492,13 +486,7 @@ class GenerateSchema:
         }
 
         def ser_ip(ip: Any, info: core_schema.SerializationInfo) -> str | IpType:
-            if not isinstance(ip, (tp, str)):
-                raise PydanticSerializationUnexpectedValue(
-                    f"Expected `{tp}` but got `{type(ip)}` with value `'{ip}'` - serialized value may not be as expected."
-                )
-            if info.mode == 'python':
-                return ip
-            return str(ip)
+            pass
 
         return core_schema.lax_or_strict_schema(
             lax_schema=core_schema.no_info_plain_validator_function(IP_VALIDATOR_LOOKUP[tp]),
@@ -525,30 +513,10 @@ class GenerateSchema:
         lax_inner_schema = core_schema.bytes_schema() if (path_type is bytes) else core_schema.str_schema()
 
         def path_validator(input_value: str | bytes) -> os.PathLike[Any]:  # type: ignore
-            try:
-                if path_type is bytes:
-                    if isinstance(input_value, bytes):
-                        try:
-                            input_value = input_value.decode()
-                        except UnicodeDecodeError as e:
-                            raise PydanticCustomError('bytes_type', 'Input must be valid bytes') from e
-                    else:
-                        raise PydanticCustomError('bytes_type', 'Input must be bytes')
-                elif not isinstance(input_value, str):
-                    raise PydanticCustomError('path_type', 'Input is not a valid path')
-
-                return path_constructor(input_value)  # type: ignore
-            except TypeError as e:
-                raise PydanticCustomError('path_type', 'Input is not a valid path') from e
+            pass
 
         def ser_path(path: Any, info: core_schema.SerializationInfo) -> str | os.PathLike[Any]:
-            if not isinstance(path, (tp, str)):
-                raise PydanticSerializationUnexpectedValue(
-                    f"Expected `{tp}` but got `{type(path)}` with value `'{path}'` - serialized value may not be as expected."
-                )
-            if info.mode == 'python':
-                return path
-            return str(path)
+            pass
 
         instance_schema = core_schema.json_or_python_schema(
             json_schema=core_schema.no_info_after_validator_function(path_validator, lax_inner_schema),
@@ -1271,8 +1239,7 @@ class GenerateSchema:
         source_type, annotations = field_info.annotation, field_info.metadata
 
         def set_discriminator(schema: CoreSchema) -> CoreSchema:
-            schema = self._apply_discriminator_to_union(schema, field_info.discriminator)
-            return schema
+            pass
 
         # Convert `@field_validator` decorators to `Before/After/Plain/WrapValidator` instances:
         validators_from_decorators = [
@@ -1631,35 +1598,7 @@ class GenerateSchema:
         This definition is meant to be used for the `'arguments-v3'` core schema, which will replace
         the `'arguments`' schema in V3.
         """
-        FieldInfo = import_cached_field_info()
-
-        if default is Parameter.empty:
-            field = FieldInfo.from_annotation(annotation, _source=source)
-        else:
-            field = FieldInfo.from_annotated_attribute(annotation, default, _source=source)
-        update_field_from_config(self._config_wrapper, name, field)
-
-        with self.field_name_stack.push(name):
-            schema = self._apply_annotations(
-                field.annotation,
-                [field],
-                # Because we pass `field` as metadata above (required for attributes relevant for
-                # JSON Scheme generation), we need to ignore the potential warnings about `FieldInfo`
-                # attributes that will not be used:
-                check_unsupported_field_info_attributes=False,
-            )
-
-        if not field.is_required():
-            schema = wrap_default(field, schema)
-
-        parameter_schema = core_schema.arguments_v3_parameter(
-            name=name,
-            schema=schema,
-            mode=mode,
-            alias=_convert_to_aliases(field.validation_alias),
-        )
-
-        return parameter_schema
+        pass
 
     def _tuple_schema(self, tuple_type: Any) -> core_schema.CoreSchema:
         """Generate schema for a Tuple, e.g. `tuple[int, str]` or `tuple[int, ...]`."""
@@ -2047,70 +1986,7 @@ class GenerateSchema:
     def _arguments_v3_schema(
         self, function: ValidateCallSupportedTypes, parameters_callback: ParametersCallback | None = None
     ) -> core_schema.ArgumentsV3Schema:
-        mode_lookup: dict[
-            _ParameterKind, Literal['positional_only', 'positional_or_keyword', 'var_args', 'keyword_only']
-        ] = {
-            Parameter.POSITIONAL_ONLY: 'positional_only',
-            Parameter.POSITIONAL_OR_KEYWORD: 'positional_or_keyword',
-            Parameter.VAR_POSITIONAL: 'var_args',
-            Parameter.KEYWORD_ONLY: 'keyword_only',
-        }
-
-        sig = _typing_extra.signature_no_eval(function)
-        globalns, localns = self._types_namespace
-        type_hints = _typing_extra.get_function_type_hints(function, globalns=globalns, localns=localns)
-
-        parameters_list: list[core_schema.ArgumentsV3Parameter] = []
-
-        for i, (name, p) in enumerate(sig.parameters.items()):
-            if parameters_callback is not None:
-                result = parameters_callback(i, name, p.annotation)
-                if result == 'skip':
-                    continue
-
-            if p.annotation is Parameter.empty:
-                annotation = typing.cast(Any, Any)
-            else:
-                annotation = type_hints[name]
-
-            parameter_mode = mode_lookup.get(p.kind)
-            if parameter_mode is None:
-                assert p.kind == Parameter.VAR_KEYWORD, p.kind
-
-                unpack_type = _typing_extra.unpack_type(annotation)
-                if unpack_type is not None:
-                    origin = get_origin(unpack_type) or unpack_type
-                    if not is_typeddict(origin):
-                        raise PydanticUserError(
-                            f'Expected a `TypedDict` class inside `Unpack[...]`, got {unpack_type!r}',
-                            code='unpack-typed-dict',
-                        )
-                    non_pos_only_param_names = {
-                        name for name, p in sig.parameters.items() if p.kind != Parameter.POSITIONAL_ONLY
-                    }
-                    overlapping_params = non_pos_only_param_names.intersection(origin.__annotations__)
-                    if overlapping_params:
-                        raise PydanticUserError(
-                            f'Typed dictionary {origin.__name__!r} overlaps with parameter'
-                            f'{"s" if len(overlapping_params) >= 2 else ""} '
-                            f'{", ".join(repr(p) for p in sorted(overlapping_params))}',
-                            code='overlapping-unpack-typed-dict',
-                        )
-                    parameter_mode = 'var_kwargs_unpacked_typed_dict'
-                    annotation = unpack_type
-                else:
-                    parameter_mode = 'var_kwargs_uniform'
-
-            parameters_list.append(
-                self._generate_parameter_v3_schema(
-                    name, annotation, AnnotationSource.FUNCTION, parameter_mode, default=p.default
-                )
-            )
-
-        return core_schema.arguments_v3_schema(
-            parameters_list,
-            validate_by_name=self._config_wrapper.validate_by_name,
-        )
+        pass
 
     def _unsubstituted_typevar_schema(self, typevar: typing.TypeVar) -> core_schema.CoreSchema:
         try:
@@ -2215,17 +2091,7 @@ class GenerateSchema:
         pydantic_js_annotation_functions: list[GetJsonSchemaFunction] = []
 
         def inner_handler(obj: Any) -> CoreSchema:
-            schema = self._generate_schema_from_get_schema_method(obj, source_type)
-
-            if schema is None:
-                schema = self._generate_schema_inner(obj)
-
-            metadata_js_function = _extract_get_pydantic_json_schema(obj)
-            if metadata_js_function is not None:
-                metadata_schema = resolve_original_schema(schema, self.defs)
-                if metadata_schema is not None:
-                    self._add_js_function(metadata_schema, metadata_js_function)
-            return transform_inner_schema(schema)
+            pass
 
         get_inner_schema = CallbackGetCoreSchemaHandler(inner_handler, self)
 
@@ -2409,21 +2275,7 @@ class GenerateSchema:
         annotation_get_schema: GetCoreSchemaFunction | None = getattr(annotation, '__get_pydantic_core_schema__', None)
 
         def new_handler(source: Any) -> core_schema.CoreSchema:
-            if annotation_get_schema is not None:
-                schema = annotation_get_schema(source, get_inner_schema)
-            else:
-                schema = get_inner_schema(source)
-                schema = self._apply_single_annotation(
-                    schema,
-                    annotation,
-                    check_unsupported_field_info_attributes=check_unsupported_field_info_attributes,
-                )
-                schema = self._apply_single_annotation_json_schema(schema, annotation)
-
-            metadata_js_function = _extract_get_pydantic_json_schema(annotation)
-            if metadata_js_function is not None:
-                pydantic_js_annotation_functions.append(metadata_js_function)
-            return schema
+            pass
 
         return CallbackGetCoreSchemaHandler(new_handler, self)
 

@@ -23,19 +23,10 @@ class DocstringVisitor(ast.NodeVisitor):
         return node_result
 
     def visit_AnnAssign(self, node: ast.AnnAssign) -> Any:
-        if isinstance(node.target, ast.Name):
-            self.target = node.target.id
+        pass
 
     def visit_Expr(self, node: ast.Expr) -> Any:
-        if (
-            isinstance(node.value, ast.Constant)
-            and isinstance(node.value.value, str)
-            and self.previous_node_type is ast.AnnAssign
-        ):
-            docstring = inspect.cleandoc(node.value.value)
-            if self.target:
-                self.attrs[self.target] = docstring
-            self.target = None
+        pass
 
 
 def _dedent_source_lines(source: list[str]) -> str:

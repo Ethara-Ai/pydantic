@@ -143,8 +143,7 @@ class ModelMetaclass(ABCMeta):
                         """We need to both initialize private attributes and call the user-defined model_post_init
                         method.
                         """
-                        init_private_attributes(self, context)
-                        original_model_post_init(self, context)
+                        pass
 
                     namespace['model_post_init'] = wrapped_model_post_init
                 else:
@@ -298,12 +297,7 @@ class ModelMetaclass(ABCMeta):
     # This may change once CPython is fixed (possibly in 3.15), in which case we should conditionally
     # define `register()`.
     def register(self, subclass: type[_T]) -> type[_T]:
-        warnings.warn(
-            f"For performance reasons, virtual subclasses registered using '{self.__qualname__}.register()' "
-            "are not supported in 'isinstance()' and 'issubclass()' checks.",
-            stacklevel=2,
-        )
-        return super().register(subclass)
+        pass
 
     __instancecheck__ = type.__instancecheck__  # pyright: ignore[reportAssignmentType]
     __subclasscheck__ = type.__subclasscheck__  # pyright: ignore[reportAssignmentType]
@@ -551,14 +545,7 @@ def make_hash_func(cls: type[BaseModel]) -> Any:
     getter = operator.itemgetter(*cls.__pydantic_fields__.keys()) if cls.__pydantic_fields__ else lambda _: 0
 
     def hash_func(self: Any) -> int:
-        try:
-            return hash(getter(self.__dict__))
-        except KeyError:
-            # In rare cases (such as when using the deprecated copy method), the __dict__ may not contain
-            # all model fields, which is how we can get here.
-            # getter(self.__dict__) is much faster than any 'safe' method that accounts for missing keys,
-            # and wrapping it in a `try` doesn't slow things down much in the common case.
-            return hash(getter(SafeGetItemProxy(self.__dict__)))
+        pass
 
     return hash_func
 

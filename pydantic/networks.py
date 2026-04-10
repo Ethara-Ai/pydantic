@@ -105,7 +105,7 @@ class UrlConstraints:
     @property
     def defined_constraints(self) -> dict[str, Any]:
         """Fetch a key / value mapping of constraints to values that are not None. Used for core schema updates."""
-        return {field.name: value for field in fields(self) if (value := getattr(self, field.name)) is not None}
+        pass
 
     def __get_pydantic_core_schema__(self, source: Any, handler: GetCoreSchemaHandler) -> core_schema.CoreSchema:
         schema = handler(source)
@@ -136,7 +136,7 @@ class _BaseUrl:
 
         e.g. `https` in `https://user:pass@host:port/path?query#fragment`
         """
-        return self._url.scheme
+        pass
 
     @property
     def username(self) -> str | None:
@@ -144,7 +144,7 @@ class _BaseUrl:
 
         e.g. `user` in `https://user:pass@host:port/path?query#fragment`
         """
-        return self._url.username
+        pass
 
     @property
     def password(self) -> str | None:
@@ -152,7 +152,7 @@ class _BaseUrl:
 
         e.g. `pass` in `https://user:pass@host:port/path?query#fragment`
         """
-        return self._url.password
+        pass
 
     @property
     def host(self) -> str | None:
@@ -161,7 +161,7 @@ class _BaseUrl:
         If the URL must be punycode encoded, this is the encoded host, e.g if the input URL is `https://£££.com`,
         `host` will be `xn--9aaa.com`
         """
-        return self._url.host
+        pass
 
     def unicode_host(self) -> str | None:
         """The host part of the URL as a unicode string, or `None`.
@@ -171,7 +171,7 @@ class _BaseUrl:
         If the URL must be punycode encoded, this is the decoded host, e.g if the input URL is `https://£££.com`,
         `unicode_host()` will be `£££.com`
         """
-        return self._url.unicode_host()
+        pass
 
     @property
     def port(self) -> int | None:
@@ -179,7 +179,7 @@ class _BaseUrl:
 
         e.g. `port` in `https://user:pass@host:port/path?query#fragment`
         """
-        return self._url.port
+        pass
 
     @property
     def path(self) -> str | None:
@@ -187,7 +187,7 @@ class _BaseUrl:
 
         e.g. `/path` in `https://user:pass@host:port/path?query#fragment`
         """
-        return self._url.path
+        pass
 
     @property
     def query(self) -> str | None:
@@ -195,14 +195,14 @@ class _BaseUrl:
 
         e.g. `query` in `https://user:pass@host:port/path?query#fragment`
         """
-        return self._url.query
+        pass
 
     def query_params(self) -> list[tuple[str, str]]:
         """The query part of the URL as a list of key-value pairs.
 
         e.g. `[('foo', 'bar')]` in `https://user:pass@host:port/path?foo=bar#fragment`
         """
-        return self._url.query_params()
+        pass
 
     @property
     def fragment(self) -> str | None:
@@ -210,7 +210,7 @@ class _BaseUrl:
 
         e.g. `fragment` in `https://user:pass@host:port/path?query#fragment`
         """
-        return self._url.fragment
+        pass
 
     def unicode_string(self) -> str:
         """The URL as a unicode string, unlike `__str__()` this will not punycode encode the host.
@@ -218,14 +218,14 @@ class _BaseUrl:
         If the URL must be punycode encoded, this is the decoded string, e.g if the input URL is `https://£££.com`,
         `unicode_string()` will be `https://£££.com`
         """
-        return self._url.unicode_string()
+        pass
 
     def encoded_string(self) -> str:
         """The URL's encoded string representation via __str__().
 
         This returns the punycode-encoded host version of the URL as a string.
         """
-        return str(self)
+        pass
 
     def __str__(self) -> str:
         """The URL as a string, this will punycode encode the host if required."""
@@ -301,27 +301,14 @@ class _BaseUrl:
 
     @classmethod
     def serialize_url(cls, url: Any, info: core_schema.SerializationInfo) -> str | Self:
-        if not isinstance(url, cls):
-            raise PydanticSerializationUnexpectedValue(
-                f"Expected `{cls}` but got `{type(url)}` with value `'{url}'` - serialized value may not be as expected."
-            )
-        if info.mode == 'json':
-            return str(url)
-        return url
+        pass
 
     @classmethod
     def __get_pydantic_core_schema__(
         cls, source: type[_BaseUrl], handler: GetCoreSchemaHandler
     ) -> core_schema.CoreSchema:
         def wrap_val(v, h):
-            if isinstance(v, source):
-                return v
-            if isinstance(v, _BaseUrl):
-                v = str(v)
-            core_url = h(v)
-            instance = source.__new__(source)
-            instance._url = core_url
-            return instance
+            pass
 
         return core_schema.no_info_wrap_validator_function(
             wrap_val,
@@ -356,7 +343,7 @@ class _BaseMultiHostUrl:
 
         e.g. `https` in `https://foo.com,bar.com/path?query#fragment`
         """
-        return self._url.scheme
+        pass
 
     @property
     def path(self) -> str | None:
@@ -364,7 +351,7 @@ class _BaseMultiHostUrl:
 
         e.g. `/path` in `https://foo.com,bar.com/path?query#fragment`
         """
-        return self._url.path
+        pass
 
     @property
     def query(self) -> str | None:
@@ -372,14 +359,14 @@ class _BaseMultiHostUrl:
 
         e.g. `query` in `https://foo.com,bar.com/path?query#fragment`
         """
-        return self._url.query
+        pass
 
     def query_params(self) -> list[tuple[str, str]]:
         """The query part of the URL as a list of key-value pairs.
 
         e.g. `[('foo', 'bar')]` in `https://foo.com,bar.com/path?foo=bar#fragment`
         """
-        return self._url.query_params()
+        pass
 
     @property
     def fragment(self) -> str | None:
@@ -387,7 +374,7 @@ class _BaseMultiHostUrl:
 
         e.g. `fragment` in `https://foo.com,bar.com/path?query#fragment`
         """
-        return self._url.fragment
+        pass
 
     def hosts(self) -> list[MultiHostHost]:
         '''The hosts of the `MultiHostUrl` as [`MultiHostHost`][pydantic_core.MultiHostHost] typed dicts.
@@ -406,18 +393,18 @@ class _BaseMultiHostUrl:
         Returns:
             A list of dicts, each representing a host.
         '''
-        return self._url.hosts()
+        pass
 
     def encoded_string(self) -> str:
         """The URL's encoded string representation via __str__().
 
         This returns the punycode-encoded host version of the URL as a string.
         """
-        return str(self)
+        pass
 
     def unicode_string(self) -> str:
         """The URL as a unicode string, unlike `__str__()` this will not punycode encode the hosts."""
-        return self._url.unicode_string()
+        pass
 
     def __str__(self) -> str:
         """The URL as a string, this will punycode encode the host if required."""
@@ -487,27 +474,14 @@ class _BaseMultiHostUrl:
 
     @classmethod
     def serialize_url(cls, url: Any, info: core_schema.SerializationInfo) -> str | Self:
-        if not isinstance(url, cls):
-            raise PydanticSerializationUnexpectedValue(
-                f"Expected `{cls}` but got `{type(url)}` with value `'{url}'` - serialized value may not be as expected."
-            )
-        if info.mode == 'json':
-            return str(url)
-        return url
+        pass
 
     @classmethod
     def __get_pydantic_core_schema__(
         cls, source: type[_BaseMultiHostUrl], handler: GetCoreSchemaHandler
     ) -> core_schema.CoreSchema:
         def wrap_val(v, h):
-            if isinstance(v, source):
-                return v
-            if isinstance(v, _BaseMultiHostUrl):
-                v = str(v)
-            core_url = h(v)
-            instance = source.__new__(source)
-            instance._url = core_url
-            return instance
+            pass
 
         return core_schema.no_info_wrap_validator_function(
             wrap_val,
@@ -531,7 +505,7 @@ class _BaseMultiHostUrl:
 
 @lru_cache
 def _build_type_adapter(cls: type[_BaseUrl | _BaseMultiHostUrl]) -> TypeAdapter:
-    return TypeAdapter(cls)
+    pass
 
 
 class AnyUrl(_BaseUrl):
@@ -768,7 +742,7 @@ class PostgresDsn(_BaseMultiHostUrl):
     @property
     def host(self) -> str:
         """The required URL host."""
-        return self._url.host  # pyright: ignore[reportAttributeAccessIssue]
+        pass
 
 
 class CockroachDsn(AnyUrl):
@@ -791,7 +765,7 @@ class CockroachDsn(AnyUrl):
     @property
     def host(self) -> str:
         """The required URL host."""
-        return self._url.host  # pyright: ignore[reportReturnType]
+        pass
 
 
 class AmqpDsn(AnyUrl):
@@ -824,7 +798,7 @@ class RedisDsn(AnyUrl):
     @property
     def host(self) -> str:
         """The required URL host."""
-        return self._url.host  # pyright: ignore[reportReturnType]
+        pass
 
 
 class MongoDsn(_BaseMultiHostUrl):
@@ -957,7 +931,7 @@ class SnowflakeDsn(AnyUrl):
     @property
     def host(self) -> str:
         """The required URL host."""
-        return self._url.host  # pyright: ignore[reportReturnType]
+        pass
 
 
 def import_email_validator() -> None:

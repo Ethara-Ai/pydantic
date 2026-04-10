@@ -28,18 +28,7 @@ T = TypeVar('T')
     category=None,
 )
 def parse_obj_as(type_: type[T], obj: Any, type_name: NameFactory | None = None) -> T:
-    warnings.warn(
-        '`parse_obj_as` is deprecated. Use `pydantic.TypeAdapter.validate_python` instead.',
-        category=PydanticDeprecatedSince20,
-        stacklevel=2,
-    )
-    if type_name is not None:  # pragma: no cover
-        warnings.warn(
-            'The type_name parameter is deprecated. parse_obj_as no longer creates temporary models',
-            DeprecationWarning,
-            stacklevel=2,
-        )
-    return TypeAdapter(type_).validate_python(obj)
+    pass
 
 
 @deprecated(
@@ -55,27 +44,7 @@ def schema_of(
     schema_generator: type[GenerateJsonSchema] = GenerateJsonSchema,
 ) -> dict[str, Any]:
     """Generate a JSON schema (as dict) for the passed model or dynamically generated one."""
-    warnings.warn(
-        '`schema_of` is deprecated. Use `pydantic.TypeAdapter.json_schema` instead.',
-        category=PydanticDeprecatedSince20,
-        stacklevel=2,
-    )
-    res = TypeAdapter(type_).json_schema(
-        by_alias=by_alias,
-        schema_generator=schema_generator,
-        ref_template=ref_template,
-    )
-    if title is not None:
-        if isinstance(title, str):
-            res['title'] = title
-        else:
-            warnings.warn(
-                'Passing a callable for the `title` parameter is deprecated and no longer supported',
-                DeprecationWarning,
-                stacklevel=2,
-            )
-            res['title'] = title(type_)
-    return res
+    pass
 
 
 @deprecated(
@@ -92,12 +61,4 @@ def schema_json_of(
     **dumps_kwargs: Any,
 ) -> str:
     """Generate a JSON schema (as JSON) for the passed model or dynamically generated one."""
-    warnings.warn(
-        '`schema_json_of` is deprecated. Use `pydantic.TypeAdapter.json_schema` instead.',
-        category=PydanticDeprecatedSince20,
-        stacklevel=2,
-    )
-    return json.dumps(
-        schema_of(type_, title=title, by_alias=by_alias, ref_template=ref_template, schema_generator=schema_generator),
-        **dumps_kwargs,
-    )
+    pass

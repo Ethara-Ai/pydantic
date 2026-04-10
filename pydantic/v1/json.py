@@ -17,7 +17,7 @@ __all__ = 'pydantic_encoder', 'custom_pydantic_encoder', 'timedelta_isoformat'
 
 
 def isoformat(o: Union[datetime.date, datetime.time]) -> str:
-    return o.isoformat()
+    pass
 
 
 def decimal_encoder(dec_value: Decimal) -> Union[int, float]:
@@ -35,10 +35,7 @@ def decimal_encoder(dec_value: Decimal) -> Union[int, float]:
     >>> decimal_encoder(Decimal("1"))
     1
     """
-    if dec_value.as_tuple().exponent >= 0:
-        return int(dec_value)
-    else:
-        return float(dec_value)
+    pass
 
 
 ENCODERS_BY_TYPE: Dict[Type[Any], Callable[[Any], Any]] = {
@@ -92,21 +89,11 @@ def pydantic_encoder(obj: Any) -> Any:
 
 def custom_pydantic_encoder(type_encoders: Dict[Any, Callable[[Type[Any]], Any]], obj: Any) -> Any:
     # Check the class type and its superclasses for a matching encoder
-    for base in obj.__class__.__mro__[:-1]:
-        try:
-            encoder = type_encoders[base]
-        except KeyError:
-            continue
-
-        return encoder(obj)
-    else:  # We have exited the for loop without finding a suitable encoder
-        return pydantic_encoder(obj)
+    pass
 
 
 def timedelta_isoformat(td: datetime.timedelta) -> str:
     """
     ISO 8601 encoding for Python timedelta object.
     """
-    minutes, seconds = divmod(td.seconds, 60)
-    hours, minutes = divmod(minutes, 60)
-    return f'{"-" if td.days < 0 else ""}P{abs(td.days)}DT{hours:d}H{minutes:d}M{seconds:d}.{td.microseconds:06d}S'
+    pass

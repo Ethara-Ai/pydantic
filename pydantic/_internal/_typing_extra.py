@@ -451,8 +451,7 @@ def eval_type_lenient(
     globalns: GlobalsNamespace | None = None,
     localns: MappingNamespace | None = None,
 ) -> Any:
-    ev, _ = try_eval_type(value, globalns, localns)
-    return ev
+    pass
 
 
 def eval_type_backport(

@@ -31,38 +31,7 @@ def sequence_validator(
     validator: core_schema.ValidatorFunctionWrapHandler,
 ) -> Sequence[Any]:
     """Validator for `Sequence` types, isinstance(v, Sequence) has already been called."""
-    value_type = type(input_value)
-
-    # We don't accept any plain string as a sequence
-    # Relevant issue: https://github.com/pydantic/pydantic/issues/5595
-    if issubclass(value_type, (str, bytes)):
-        raise PydanticCustomError(
-            'sequence_str',
-            "'{type_name}' instances are not allowed as a Sequence value",
-            {'type_name': value_type.__name__},
-        )
-
-    # TODO: refactor sequence validation to validate with either a list or a tuple
-    # schema, depending on the type of the value.
-    # Additionally, we should be able to remove one of either this validator or the
-    # SequenceValidator in _std_types_schema.py (preferably this one, while porting over some logic).
-    # Effectively, a refactor for sequence validation is needed.
-    if value_type is tuple:
-        input_value = list(input_value)
-
-    v_list = validator(input_value)
-
-    # the rest of the logic is just re-creating the original type from `v_list`
-    if value_type is list:
-        return v_list
-    elif issubclass(value_type, range):
-        # return the list as we probably can't re-create the range
-        return v_list
-    elif value_type is tuple:
-        return tuple(v_list)
-    else:
-        # best guess at how to re-create the original type, more custom construction logic might be required
-        return value_type(v_list)  # type: ignore[call-arg]
+    pass
 
 
 def import_string(value: Any) -> Any:
@@ -129,71 +98,30 @@ def _import_string_logic(dotted_path: str) -> Any:
 
 
 def pattern_either_validator(input_value: Any, /) -> re.Pattern[Any]:
-    if isinstance(input_value, re.Pattern):
-        return input_value
-    elif isinstance(input_value, (str, bytes)):
-        # todo strict mode
-        return compile_pattern(input_value)  # type: ignore
-    else:
-        raise PydanticCustomError('pattern_type', 'Input should be a valid pattern')
+    pass
 
 
 def pattern_str_validator(input_value: Any, /) -> re.Pattern[str]:
-    if isinstance(input_value, re.Pattern):
-        if isinstance(input_value.pattern, str):
-            return input_value
-        else:
-            raise PydanticCustomError('pattern_str_type', 'Input should be a string pattern')
-    elif isinstance(input_value, str):
-        return compile_pattern(input_value)
-    elif isinstance(input_value, bytes):
-        raise PydanticCustomError('pattern_str_type', 'Input should be a string pattern')
-    else:
-        raise PydanticCustomError('pattern_type', 'Input should be a valid pattern')
+    pass
 
 
 def pattern_bytes_validator(input_value: Any, /) -> re.Pattern[bytes]:
-    if isinstance(input_value, re.Pattern):
-        if isinstance(input_value.pattern, bytes):
-            return input_value
-        else:
-            raise PydanticCustomError('pattern_bytes_type', 'Input should be a bytes pattern')
-    elif isinstance(input_value, bytes):
-        return compile_pattern(input_value)
-    elif isinstance(input_value, str):
-        raise PydanticCustomError('pattern_bytes_type', 'Input should be a bytes pattern')
-    else:
-        raise PydanticCustomError('pattern_type', 'Input should be a valid pattern')
+    pass
 
 
 PatternType = TypeVar('PatternType', str, bytes)
 
 
 def compile_pattern(pattern: PatternType) -> re.Pattern[PatternType]:
-    try:
-        return re.compile(pattern)
-    except re.error:
-        raise PydanticCustomError('pattern_regex', 'Input should be a valid regular expression')
+    pass
 
 
 def ip_v4_address_validator(input_value: Any, /) -> IPv4Address:
-    if isinstance(input_value, IPv4Address):
-        return input_value
-
-    try:
-        return IPv4Address(input_value)
-    except ValueError:
-        raise PydanticCustomError('ip_v4_address', 'Input is not a valid IPv4 address')
+    pass
 
 
 def ip_v6_address_validator(input_value: Any, /) -> IPv6Address:
-    if isinstance(input_value, IPv6Address):
-        return input_value
-
-    try:
-        return IPv6Address(input_value)
-    except ValueError:
-        raise PydanticCustomError('ip_v6_address', 'Input is not a valid IPv6 address')
+    pass
 
 
 def ip_v4_network_validator(input_value: Any, /) -> IPv4Network:
@@ -202,13 +130,7 @@ def ip_v4_network_validator(input_value: Any, /) -> IPv4Network:
     See more:
     https://docs.python.org/library/ipaddress.html#ipaddress.IPv4Network
     """
-    if isinstance(input_value, IPv4Network):
-        return input_value
-
-    try:
-        return IPv4Network(input_value)
-    except ValueError:
-        raise PydanticCustomError('ip_v4_network', 'Input is not a valid IPv4 network')
+    pass
 
 
 def ip_v6_network_validator(input_value: Any, /) -> IPv6Network:
@@ -217,49 +139,23 @@ def ip_v6_network_validator(input_value: Any, /) -> IPv6Network:
     See more:
     https://docs.python.org/library/ipaddress.html#ipaddress.IPv6Network
     """
-    if isinstance(input_value, IPv6Network):
-        return input_value
-
-    try:
-        return IPv6Network(input_value)
-    except ValueError:
-        raise PydanticCustomError('ip_v6_network', 'Input is not a valid IPv6 network')
+    pass
 
 
 def ip_v4_interface_validator(input_value: Any, /) -> IPv4Interface:
-    if isinstance(input_value, IPv4Interface):
-        return input_value
-
-    try:
-        return IPv4Interface(input_value)
-    except ValueError:
-        raise PydanticCustomError('ip_v4_interface', 'Input is not a valid IPv4 interface')
+    pass
 
 
 def ip_v6_interface_validator(input_value: Any, /) -> IPv6Interface:
-    if isinstance(input_value, IPv6Interface):
-        return input_value
-
-    try:
-        return IPv6Interface(input_value)
-    except ValueError:
-        raise PydanticCustomError('ip_v6_interface', 'Input is not a valid IPv6 interface')
+    pass
 
 
 def fraction_validator(input_value: Any, /) -> Fraction:
-    if isinstance(input_value, Fraction):
-        return input_value
-
-    try:
-        return Fraction(input_value)
-    except ValueError:
-        raise PydanticCustomError('fraction_parsing', 'Input is not a valid fraction')
+    pass
 
 
 def forbid_inf_nan_check(x: Any) -> Any:
-    if not math.isfinite(x):
-        raise PydanticKnownError('finite_number')
-    return x
+    pass
 
 
 def _safe_repr(v: Any) -> int | float | str:
@@ -267,77 +163,35 @@ def _safe_repr(v: Any) -> int | float | str:
 
     See tests/test_types.py::test_annotated_metadata_any_order for some context.
     """
-    if isinstance(v, (int, float, str)):
-        return v
-    return repr(v)
+    pass
 
 
 def greater_than_validator(x: Any, gt: Any) -> Any:
-    try:
-        if not (x > gt):
-            raise PydanticKnownError('greater_than', {'gt': _safe_repr(gt)})
-        return x
-    except TypeError:
-        raise TypeError(f"Unable to apply constraint 'gt' to supplied value {x}")
+    pass
 
 
 def greater_than_or_equal_validator(x: Any, ge: Any) -> Any:
-    try:
-        if not (x >= ge):
-            raise PydanticKnownError('greater_than_equal', {'ge': _safe_repr(ge)})
-        return x
-    except TypeError:
-        raise TypeError(f"Unable to apply constraint 'ge' to supplied value {x}")
+    pass
 
 
 def less_than_validator(x: Any, lt: Any) -> Any:
-    try:
-        if not (x < lt):
-            raise PydanticKnownError('less_than', {'lt': _safe_repr(lt)})
-        return x
-    except TypeError:
-        raise TypeError(f"Unable to apply constraint 'lt' to supplied value {x}")
+    pass
 
 
 def less_than_or_equal_validator(x: Any, le: Any) -> Any:
-    try:
-        if not (x <= le):
-            raise PydanticKnownError('less_than_equal', {'le': _safe_repr(le)})
-        return x
-    except TypeError:
-        raise TypeError(f"Unable to apply constraint 'le' to supplied value {x}")
+    pass
 
 
 def multiple_of_validator(x: Any, multiple_of: Any) -> Any:
-    try:
-        if x % multiple_of:
-            raise PydanticKnownError('multiple_of', {'multiple_of': _safe_repr(multiple_of)})
-        return x
-    except TypeError:
-        raise TypeError(f"Unable to apply constraint 'multiple_of' to supplied value {x}")
+    pass
 
 
 def min_length_validator(x: Any, min_length: Any) -> Any:
-    try:
-        if not (len(x) >= min_length):
-            raise PydanticKnownError(
-                'too_short', {'field_type': 'Value', 'min_length': min_length, 'actual_length': len(x)}
-            )
-        return x
-    except TypeError:
-        raise TypeError(f"Unable to apply constraint 'min_length' to supplied value {x}")
+    pass
 
 
 def max_length_validator(x: Any, max_length: Any) -> Any:
-    try:
-        if len(x) > max_length:
-            raise PydanticKnownError(
-                'too_long',
-                {'field_type': 'Value', 'max_length': max_length, 'actual_length': len(x)},
-            )
-        return x
-    except TypeError:
-        raise TypeError(f"Unable to apply constraint 'max_length' to supplied value {x}")
+    pass
 
 
 def _extract_decimal_digits_info(decimal: Decimal) -> tuple[int, int]:
@@ -355,75 +209,25 @@ def _extract_decimal_digits_info(decimal: Decimal) -> tuple[int, int]:
     Though this could be divided into two separate functions, the logic is easier to follow if we couple the computation
     of the number of decimals and digits together.
     """
-    try:
-        decimal_tuple = decimal.as_tuple()
-
-        assert isinstance(decimal_tuple.exponent, int)
-
-        exponent = decimal_tuple.exponent
-        num_digits = len(decimal_tuple.digits)
-
-        if exponent >= 0:
-            # A positive exponent adds that many trailing zeros
-            # Ex: digit_tuple=(1, 2, 3), exponent=2 -> 12300 -> 0 decimal places, 5 digits
-            num_digits += exponent
-            decimal_places = 0
-        else:
-            # If the absolute value of the negative exponent is larger than the
-            # number of digits, then it's the same as the number of digits,
-            # because it'll consume all the digits in digit_tuple and then
-            # add abs(exponent) - len(digit_tuple) leading zeros after the decimal point.
-            # Ex: digit_tuple=(1, 2, 3), exponent=-2 -> 1.23 -> 2 decimal places, 3 digits
-            # Ex: digit_tuple=(1, 2, 3), exponent=-4 -> 0.0123 -> 4 decimal places, 4 digits
-            decimal_places = abs(exponent)
-            num_digits = max(num_digits, decimal_places)
-
-        return decimal_places, num_digits
-    except (AssertionError, AttributeError):
-        raise TypeError(f'Unable to extract decimal digits info from supplied value {decimal}')
+    pass
 
 
 def max_digits_validator(x: Any, max_digits: Any) -> Any:
-    try:
-        _, num_digits = _extract_decimal_digits_info(x)
-        _, normalized_num_digits = _extract_decimal_digits_info(x.normalize())
-        if (num_digits > max_digits) and (normalized_num_digits > max_digits):
-            raise PydanticKnownError(
-                'decimal_max_digits',
-                {'max_digits': max_digits},
-            )
-        return x
-    except TypeError:
-        raise TypeError(f"Unable to apply constraint 'max_digits' to supplied value {x}")
+    pass
 
 
 def decimal_places_validator(x: Any, decimal_places: Any) -> Any:
-    try:
-        decimal_places_, _ = _extract_decimal_digits_info(x)
-        if decimal_places_ > decimal_places:
-            normalized_decimal_places, _ = _extract_decimal_digits_info(x.normalize())
-            if normalized_decimal_places > decimal_places:
-                raise PydanticKnownError(
-                    'decimal_max_places',
-                    {'decimal_places': decimal_places},
-                )
-        return x
-    except TypeError:
-        raise TypeError(f"Unable to apply constraint 'decimal_places' to supplied value {x}")
+    pass
 
 
 def deque_validator(input_value: Any, handler: core_schema.ValidatorFunctionWrapHandler) -> collections.deque[Any]:
-    return collections.deque(handler(input_value), maxlen=getattr(input_value, 'maxlen', None))
+    pass
 
 
 def defaultdict_validator(
     input_value: Any, handler: core_schema.ValidatorFunctionWrapHandler, default_default_factory: Callable[[], Any]
 ) -> collections.defaultdict[Any, Any]:
-    if isinstance(input_value, collections.defaultdict):
-        default_factory = input_value.default_factory
-        return collections.defaultdict(default_factory, handler(input_value))
-    else:
-        return collections.defaultdict(default_default_factory, handler(input_value))
+    pass
 
 
 def get_defaultdict_default_default_factory(values_source_type: Any) -> Callable[[], Any]:
@@ -486,12 +290,7 @@ def get_defaultdict_default_default_factory(values_source_type: Any) -> Callable
 
 
 def validate_str_is_valid_iana_tz(value: Any, /) -> ZoneInfo:
-    if isinstance(value, ZoneInfo):
-        return value
-    try:
-        return ZoneInfo(value)
-    except (ZoneInfoNotFoundError, ValueError, TypeError):
-        raise PydanticCustomError('zoneinfo_str', 'invalid timezone: {value}', {'value': value})
+    pass
 
 
 NUMERIC_VALIDATOR_LOOKUP: dict[str, Callable] = {

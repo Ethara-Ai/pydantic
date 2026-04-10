@@ -34,23 +34,15 @@ class Row:
 
     @property
     def field_type_str(self) -> str:
-        return f'{self.field_type.__name__}' if hasattr(self.field_type, '__name__') else f'{self.field_type}'
+        pass
 
     @property
     def input_type_str(self) -> str:
-        return f'{self.input_type.__name__}' if hasattr(self.input_type, '__name__') else f'{self.input_type}'
+        pass
 
     @property
     def input_source_str(self) -> str:
-        if self.python_input:
-            if self.json_input:
-                return 'Python & JSON'
-            else:
-                return 'Python'
-        elif self.json_input:
-            return 'JSON'
-        else:
-            return ''
+        pass
 
 
 @dataclass
@@ -68,41 +60,24 @@ class ConversionTable:
     close_nowrap_span = '</span>'
 
     def col_values(self, row: Row) -> list[str]:
-        o = self.open_nowrap_span
-        c = self.close_nowrap_span
-
-        return [
-            f'{o}`{row.field_type_str}`{c}',
-            f'{o}`{row.input_type_str}`{c}',
-            '✓' if row.strict else '',
-            f'{o}{row.input_source_str}{c}',
-            row.condition if row.condition else '',
-        ]
+        pass
 
     @staticmethod
     def row_as_markdown(cols: list[str]) -> str:
-        return f'| {" | ".join(cols)} |'
+        pass
 
     def as_markdown(self) -> str:
-        lines = [self.row_as_markdown(self.col_names), self.row_as_markdown(['-'] * len(self.col_names))] + [
-            self.row_as_markdown(self.col_values(row)) for row in self.rows
-        ]
-        return '\n'.join(lines)
+        pass
 
     @staticmethod
     def row_sort_key(row: Row) -> Any:
-        field_type = row.field_type_str or ' '
-        input_type = row.input_type_str or ' '
-        input_source = row.input_source_str
-
-        # Include the .isupper() to make it so that leading-lowercase items come first
-        return field_type[0].isupper(), field_type, input_type[0].isupper(), input_type, input_source
+        pass
 
     def sorted(self) -> ConversionTable:
-        return ConversionTable(sorted(self.rows, key=self.row_sort_key))
+        pass
 
     def filtered(self, predicate: Callable[[Row], bool]) -> ConversionTable:
-        return ConversionTable([row for row in self.rows if predicate(row)])
+        pass
 
 
 table_rows: list[Row] = [

@@ -502,19 +502,7 @@ class ConstrainedSet(set):  # type: ignore
 
     @classmethod
     def set_length_validator(cls, v: 'Optional[Set[T]]') -> 'Optional[Set[T]]':
-        if v is None:
-            return None
-
-        v = set_validator(v)
-        v_len = len(v)
-
-        if cls.min_items is not None and v_len < cls.min_items:
-            raise errors.SetMinLengthError(limit_value=cls.min_items)
-
-        if cls.max_items is not None and v_len > cls.max_items:
-            raise errors.SetMaxLengthError(limit_value=cls.max_items)
-
-        return v
+        pass
 
 
 def conset(item_type: Type[T], *, min_items: Optional[int] = None, max_items: Optional[int] = None) -> Type[Set[T]]:
@@ -544,19 +532,7 @@ class ConstrainedFrozenSet(frozenset):  # type: ignore
 
     @classmethod
     def frozenset_length_validator(cls, v: 'Optional[FrozenSet[T]]') -> 'Optional[FrozenSet[T]]':
-        if v is None:
-            return None
-
-        v = frozenset_validator(v)
-        v_len = len(v)
-
-        if cls.min_items is not None and v_len < cls.min_items:
-            raise errors.FrozenSetMinLengthError(limit_value=cls.min_items)
-
-        if cls.max_items is not None and v_len > cls.max_items:
-            raise errors.FrozenSetMaxLengthError(limit_value=cls.max_items)
-
-        return v
+        pass
 
 
 def confrozenset(
@@ -594,30 +570,11 @@ class ConstrainedList(list):  # type: ignore
 
     @classmethod
     def list_length_validator(cls, v: 'Optional[List[T]]') -> 'Optional[List[T]]':
-        if v is None:
-            return None
-
-        v = list_validator(v)
-        v_len = len(v)
-
-        if cls.min_items is not None and v_len < cls.min_items:
-            raise errors.ListMinLengthError(limit_value=cls.min_items)
-
-        if cls.max_items is not None and v_len > cls.max_items:
-            raise errors.ListMaxLengthError(limit_value=cls.max_items)
-
-        return v
+        pass
 
     @classmethod
     def unique_items_validator(cls, v: 'Optional[List[T]]') -> 'Optional[List[T]]':
-        if v is None:
-            return None
-
-        for i, value in enumerate(v, start=1):
-            if value in v[i:]:
-                raise errors.ListUniqueItemsError()
-
-        return v
+        pass
 
 
 def conlist(
@@ -909,8 +866,7 @@ class SecretStr(SecretField):
         return len(self._secret_value)
 
     def display(self) -> str:
-        warnings.warn('`secret_str.display()` is deprecated, use `str(secret_str)` instead', DeprecationWarning)
-        return str(self)
+        pass
 
     def get_secret_value(self) -> str:
         return self._secret_value
@@ -953,8 +909,7 @@ class SecretBytes(SecretField):
         return len(self._secret_value)
 
     def display(self) -> str:
-        warnings.warn('`secret_bytes.display()` is deprecated, use `str(secret_bytes)` instead', DeprecationWarning)
-        return str(self)
+        pass
 
     def get_secret_value(self) -> bytes:
         return self._secret_value
@@ -1004,34 +959,18 @@ class PaymentCardNumber(str):
 
     @property
     def masked(self) -> str:
-        num_masked = len(self) - 10  # len(bin) + len(last4) == 10
-        return f'{self.bin}{"*" * num_masked}{self.last4}'
+        pass
 
     @classmethod
     def validate_digits(cls, card_number: str) -> str:
-        if not card_number.isdigit():
-            raise errors.NotDigitError
-        return card_number
+        pass
 
     @classmethod
     def validate_luhn_check_digit(cls, card_number: str) -> str:
         """
         Based on: https://en.wikipedia.org/wiki/Luhn_algorithm
         """
-        sum_ = int(card_number[-1])
-        length = len(card_number)
-        parity = length % 2
-        for i in range(length - 1):
-            digit = int(card_number[i])
-            if i % 2 == parity:
-                digit *= 2
-            if digit > 9:
-                digit -= 9
-            sum_ += digit
-        valid = sum_ % 10 == 0
-        if not valid:
-            raise errors.LuhnValidationError
-        return card_number
+        pass
 
     @classmethod
     def validate_length_for_brand(cls, card_number: 'PaymentCardNumber') -> 'PaymentCardNumber':
@@ -1039,33 +978,11 @@ class PaymentCardNumber(str):
         Validate length based on BIN for major brands:
         https://en.wikipedia.org/wiki/Payment_card_number#Issuer_identification_number_(IIN)
         """
-        required_length: Union[None, int, str] = None
-        if card_number.brand in PaymentCardBrand.mastercard:
-            required_length = 16
-            valid = len(card_number) == required_length
-        elif card_number.brand == PaymentCardBrand.visa:
-            required_length = '13, 16 or 19'
-            valid = len(card_number) in {13, 16, 19}
-        elif card_number.brand == PaymentCardBrand.amex:
-            required_length = 15
-            valid = len(card_number) == required_length
-        else:
-            valid = True
-        if not valid:
-            raise errors.InvalidLengthForBrand(brand=card_number.brand, required_length=required_length)
-        return card_number
+        pass
 
     @staticmethod
     def _get_brand(card_number: str) -> PaymentCardBrand:
-        if card_number[0] == '4':
-            brand = PaymentCardBrand.visa
-        elif 51 <= int(card_number[:2]) <= 55:
-            brand = PaymentCardBrand.mastercard
-        elif card_number[:2] in {'34', '37'}:
-            brand = PaymentCardBrand.amex
-        else:
-            brand = PaymentCardBrand.other
-        return brand
+        pass
 
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ BYTE SIZE TYPE ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -1117,30 +1034,10 @@ class ByteSize(int):
         return cls(int(float(scalar) * unit_mult))
 
     def human_readable(self, decimal: bool = False) -> str:
-        if decimal:
-            divisor = 1000
-            units = ['B', 'KB', 'MB', 'GB', 'TB', 'PB']
-            final_unit = 'EB'
-        else:
-            divisor = 1024
-            units = ['B', 'KiB', 'MiB', 'GiB', 'TiB', 'PiB']
-            final_unit = 'EiB'
-
-        num = float(self)
-        for unit in units:
-            if abs(num) < divisor:
-                return f'{num:0.1f}{unit}'
-            num /= divisor
-
-        return f'{num:0.1f}{final_unit}'
+        pass
 
     def to(self, unit: str) -> float:
-        try:
-            unit_div = BYTE_SIZES[unit.lower()]
-        except KeyError:
-            raise errors.InvalidByteSizeUnit(unit=unit)
-
-        return self / unit_div
+        pass
 
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ DATE TYPES ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

@@ -85,11 +85,7 @@ class GenericModel(BaseModel):
         """
 
         def _cache_key(_params: Any) -> CacheKey:
-            args = get_args(_params)
-            # python returns a list for Callables, which is not hashable
-            if len(args) == 2 and isinstance(args[0], list):
-                args = (tuple(args[0]), args[1])
-            return cls, _params, args
+            pass
 
         cached = _generic_types_cache.get(_cache_key(params))
         if cached is not None:
@@ -210,12 +206,7 @@ class GenericModel(BaseModel):
         def build_base_model(
             base_model: Type[GenericModel], mapped_types: Parametrization
         ) -> Iterator[Type[GenericModel]]:
-            base_parameters = tuple(mapped_types[param] for param in base_model.__parameters__)
-            parameterized_base = base_model.__class_getitem__(base_parameters)
-            if parameterized_base is base_model or parameterized_base is cls:
-                # Avoid duplication in MRO
-                return
-            yield parameterized_base
+            pass
 
         for base_model in cls.__bases__:
             if not issubclass(base_model, GenericModel):
@@ -331,11 +322,7 @@ def replace_types(type_: Any, type_map: Mapping[Any, Any]) -> Any:
 
 
 def check_parameters_count(cls: Type[GenericModel], parameters: Tuple[Any, ...]) -> None:
-    actual = len(parameters)
-    expected = len(cls.__parameters__)
-    if actual != expected:
-        description = 'many' if actual > expected else 'few'
-        raise TypeError(f'Too {description} parameters for {cls.__name__}; actual {actual}, expected {expected}')
+    pass
 
 
 DictValues: Type[Any] = {}.values().__class__
@@ -364,14 +351,7 @@ def get_caller_frame_info() -> Tuple[Optional[str], bool]:
 
     :returns Tuple[module_name, called_globally]
     """
-    try:
-        previous_caller_frame = sys._getframe(2)
-    except ValueError as e:
-        raise RuntimeError('This function must be used inside another function') from e
-    except AttributeError:  # sys module does not have _getframe function, so there's nothing we can do about it
-        return None, False
-    frame_globals = previous_caller_frame.f_globals
-    return frame_globals.get('__name__'), previous_caller_frame.f_locals is frame_globals
+    pass
 
 
 def _prepare_model_fields(
@@ -383,18 +363,4 @@ def _prepare_model_fields(
     """
     Replace DeferredType fields with concrete type hints and prepare them.
     """
-
-    for key, field in created_model.__fields__.items():
-        if key not in fields:
-            assert field.type_.__class__ is not DeferredType
-            # https://github.com/nedbat/coveragepy/issues/198
-            continue  # pragma: no cover
-
-        assert field.type_.__class__ is DeferredType, field.type_.__class__
-
-        field_type_hint = instance_type_hints[key]
-        concrete_type = replace_types(field_type_hint, typevars_map)
-        field.type_ = concrete_type
-        field.outer_type_ = concrete_type
-        field.prepare()
-        created_model.__annotations__[key] = concrete_type
+    pass

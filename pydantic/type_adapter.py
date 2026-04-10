@@ -250,15 +250,7 @@ class TypeAdapter(Generic[T]):
         )
 
     def _fetch_parent_frame(self) -> FrameType | None:
-        frame = sys._getframe(self._parent_depth)
-        if frame.f_globals.get('__name__') == 'typing':
-            # Because `TypeAdapter` is generic, explicitly parametrizing the class results
-            # in a `typing._GenericAlias` instance, which proxies instantiation calls to the
-            # "real" `TypeAdapter` class and thus adding an extra frame to the call. To avoid
-            # pulling anything from the `typing` module, use the correct frame (the one before):
-            return frame.f_back
-
-        return frame
+        pass
 
     def _init_core_attrs(
         self, ns_resolver: _namespace_utils.NsResolver, force: bool, raise_errors: bool = False
@@ -334,17 +326,11 @@ class TypeAdapter(Generic[T]):
 
     @property
     def _defer_build(self) -> bool:
-        config = self._config if self._config is not None else self._model_config
-        if config:
-            return config.get('defer_build') is True
-        return False
+        pass
 
     @property
     def _model_config(self) -> ConfigDict | None:
-        type_: Any = _typing_extra.annotated_type(self._type) or self._type  # Eg FastAPI heavily uses Annotated
-        if _utils.lenient_issubclass(type_, BaseModel):
-            return type_.model_config
-        return getattr(type_, '__pydantic_config__', None)
+        pass
 
     def __repr__(self) -> str:
         return f'TypeAdapter({_repr.display_as_type(self._type)})'
@@ -530,21 +516,7 @@ class TypeAdapter(Generic[T]):
         Returns:
             The validated object.
         """
-        if by_alias is False and by_name is not True:
-            raise PydanticUserError(
-                'At least one of `by_alias` or `by_name` must be set to True.',
-                code='validate-by-alias-and-name-false',
-            )
-
-        return self.validator.validate_strings(
-            obj,
-            strict=strict,
-            extra=extra,
-            context=context,
-            allow_partial=experimental_allow_partial,
-            by_alias=by_alias,
-            by_name=by_name,
-        )
+        pass
 
     def get_default_value(self, *, strict: bool | None = None, context: Any | None = None) -> Some[T] | None:
         """Get the default value for the wrapped type.
@@ -774,28 +746,4 @@ class TypeAdapter(Generic[T]):
                     element, along with the optional title and description keys.
 
         """
-        schema_generator_instance = schema_generator(
-            by_alias=by_alias, ref_template=ref_template, union_format=union_format
-        )
-
-        inputs_ = []
-        for key, mode, adapter in inputs:
-            # This is the same pattern we follow for model json schemas - we attempt a core schema rebuild if we detect a mock
-            if isinstance(adapter.core_schema, _mock_val_ser.MockCoreSchema):
-                adapter.core_schema.rebuild()
-                assert not isinstance(adapter.core_schema, _mock_val_ser.MockCoreSchema), (
-                    'this is a bug! please report it'
-                )
-            inputs_.append((key, mode, adapter.core_schema))
-
-        json_schemas_map, definitions = schema_generator_instance.generate_definitions(inputs_)
-
-        json_schema: dict[str, Any] = {}
-        if definitions:
-            json_schema['$defs'] = definitions
-        if title:
-            json_schema['title'] = title
-        if description:
-            json_schema['description'] = description
-
-        return json_schemas_map, json_schema
+        pass

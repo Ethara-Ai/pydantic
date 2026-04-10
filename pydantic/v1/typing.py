@@ -99,7 +99,7 @@ if sys.version_info < (3, 9):
 else:
 
     def get_all_type_hints(obj: Any, globalns: Any = None, localns: Any = None) -> Any:
-        return get_type_hints(obj, globalns, localns, include_extras=True)
+        pass
 
 
 _T = TypeVar('_T')
@@ -211,7 +211,7 @@ if sys.version_info < (3, 9):
         Examples::
             typing.List['Hero'] == typing.List[ForwardRef('Hero')]
         """
-        return tp
+        pass
 
 else:
 
@@ -225,35 +225,7 @@ else:
             convert_generics(typing.Dict['Hero', 'Team']) == typing.Dict[ForwardRef('Hero'), ForwardRef('Team')]
             convert_generics(list[str | 'Hero'] | int) == list[str | ForwardRef('Hero')] | int
         """
-        origin = get_origin(tp)
-        if not origin or not hasattr(tp, '__args__'):
-            return tp
-
-        args = get_args(tp)
-
-        # typing.Annotated needs special treatment
-        if origin is Annotated:
-            return Annotated[(convert_generics(args[0]), *args[1:])]  # type: ignore
-
-        # recursively replace `str` instances inside of `GenericAlias` with `ForwardRef(arg)`
-        converted = tuple(
-            ForwardRef(arg) if isinstance(arg, str) and isinstance(tp, TypingGenericAlias) else convert_generics(arg)
-            for arg in args
-        )
-
-        if converted == args:
-            return tp
-        elif isinstance(tp, TypingGenericAlias):
-            return TypingGenericAlias(origin, converted)
-        elif isinstance(tp, TypesUnionType):
-            # recreate types.UnionType (PEP604, Python >= 3.10)
-            return functools.reduce(operator.or_, converted)  # type: ignore
-        else:
-            try:
-                setattr(tp, '__args__', converted)
-            except AttributeError:
-                pass
-            return tp
+        pass
 
 
 if sys.version_info < (3, 10):

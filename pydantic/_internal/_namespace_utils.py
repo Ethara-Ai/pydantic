@@ -88,7 +88,7 @@ class LazyLocalNamespace(Mapping[str, Any]):
 
     @cached_property
     def data(self) -> dict[str, Any]:
-        return {k: v for ns in self._namespaces for k, v in ns.items()}
+        pass
 
     def __len__(self) -> int:
         return len(self.data)
@@ -116,28 +116,7 @@ def ns_for_function(obj: Callable[..., Any], parent_namespace: MappingNamespace 
             the method is defined in. Thus, we also fetch type `__type_params__` from there (i.e. the
             class-scoped type variables).
     """
-    locals_list: list[MappingNamespace] = []
-    if parent_namespace is not None:
-        locals_list.append(parent_namespace)
-
-    # Get the `__type_params__` attribute introduced by PEP 695.
-    # Note that the `typing._eval_type` function expects type params to be
-    # passed as a separate argument. However, internally, `_eval_type` calls
-    # `ForwardRef._evaluate` which will merge type params with the localns,
-    # essentially mimicking what we do here.
-    type_params: tuple[_TypeVarLike, ...] = getattr(obj, '__type_params__', ())
-    if parent_namespace is not None:
-        # We also fetch type params from the parent namespace. If present, it probably
-        # means the function was defined in a class. This is to support the following:
-        # https://github.com/python/cpython/issues/124089.
-        type_params += parent_namespace.get('__type_params__', ())
-
-    locals_list.append({t.__name__: t for t in type_params})
-
-    # What about short-circuiting to `obj.__globals__`?
-    globalns = get_module_ns_of(obj)
-
-    return NamespacesTuple(globalns, LazyLocalNamespace(*locals_list))
+    pass
 
 
 class NsResolver:
@@ -232,53 +211,7 @@ class NsResolver:
     @cached_property
     def types_namespace(self) -> NamespacesTuple:
         """The current global and local namespaces to be used for annotations evaluation."""
-        if not self._types_stack:
-            # TODO: should we merge the parent namespace here?
-            # This is relevant for TypeAdapter, where there are no types on the stack, and we might
-            # need access to the parent_ns. Right now, we sidestep this in `type_adapter.py` by passing
-            # locals to both parent_ns and the base_ns_tuple, but this is a bit hacky.
-            # we might consider something like:
-            # if self._parent_ns is not None:
-            #     # Hacky workarounds, see class docstring:
-            #     # An optional parent namespace that will be added to the locals with the lowest priority
-            #     locals_list: list[MappingNamespace] = [self._parent_ns, self._base_ns_tuple.locals]
-            #     return NamespacesTuple(self._base_ns_tuple.globals, LazyLocalNamespace(*locals_list))
-            return self._base_ns_tuple
-
-        typ = self._types_stack[-1]
-
-        globalns = get_module_ns_of(typ)
-
-        locals_list: list[MappingNamespace] = []
-        # Hacky workarounds, see class docstring:
-        # An optional parent namespace that will be added to the locals with the lowest priority
-        if self._parent_ns is not None:
-            locals_list.append(self._parent_ns)
-        if len(self._types_stack) > 1:
-            first_type = self._types_stack[0]
-            locals_list.append({first_type.__name__: first_type})
-
-        # Adding `__type_params__` *before* `vars(typ)`, as the latter takes priority
-        # (see https://github.com/python/cpython/pull/120272).
-        # TODO `typ.__type_params__` when we drop support for Python 3.11:
-        type_params: tuple[_TypeVarLike, ...] = getattr(typ, '__type_params__', ())
-        if type_params:
-            # Adding `__type_params__` is mostly useful for generic classes defined using
-            # PEP 695 syntax *and* using forward annotations (see the example in
-            # https://github.com/python/cpython/issues/114053). For TypeAliasType instances,
-            # it is way less common, but still required if using a string annotation in the alias
-            # value, e.g. `type A[T] = 'T'` (which is not necessary in most cases).
-            locals_list.append({t.__name__: t for t in type_params})
-
-        # TypeAliasType instances don't have a `__dict__` attribute, so the check
-        # is necessary:
-        if hasattr(typ, '__dict__'):
-            locals_list.append(vars(typ))
-
-        # The `len(self._types_stack) > 1` check above prevents this from being added twice:
-        locals_list.append({typ.__name__: typ})
-
-        return NamespacesTuple(globalns, LazyLocalNamespace(*locals_list))
+        pass
 
     @contextmanager
     def push(self, typ: type[Any] | TypeAliasType, /) -> Generator[None]:

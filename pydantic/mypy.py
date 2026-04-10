@@ -120,7 +120,7 @@ def plugin(version: str) -> type[Plugin]:
     Return:
         The Pydantic mypy plugin type.
     """
-    return PydanticPlugin
+    pass
 
 
 class PydanticPlugin(Plugin):
@@ -133,41 +133,29 @@ class PydanticPlugin(Plugin):
 
     def get_base_class_hook(self, fullname: str) -> Callable[[ClassDefContext], None] | None:
         """Update Pydantic model class."""
-        sym = self.lookup_fully_qualified(fullname)
-        if sym and isinstance(sym.node, TypeInfo):  # pragma: no branch
-            # No branching may occur if the mypy cache has not been cleared
-            if sym.node.has_base(BASEMODEL_FULLNAME):
-                return self._pydantic_model_class_maker_callback
-        return None
+        pass
 
     def get_metaclass_hook(self, fullname: str) -> Callable[[ClassDefContext], None] | None:
         """Update Pydantic `ModelMetaclass` definition."""
-        if fullname == MODEL_METACLASS_FULLNAME:
-            return self._pydantic_model_metaclass_marker_callback
-        return None
+        pass
 
     def get_method_hook(self, fullname: str) -> Callable[[MethodContext], Type] | None:
         """Adjust return type of `from_orm` method call."""
-        if fullname.endswith('.from_orm'):
-            return from_attributes_callback
-        return None
+        pass
 
     def get_dynamic_class_hook(self, fullname: str) -> Callable[[DynamicClassDefContext], None] | None:
         """Recognize `create_model()` calls as dynamic BaseModel subclasses."""
-        if fullname == CREATE_MODEL_FULLNAME:
-            return self._pydantic_create_model_callback
-        return None
+        pass
 
     def report_config_data(self, ctx: ReportConfigContext) -> dict[str, Any]:
         """Return all plugin config data.
 
         Used by mypy to determine if cache needs to be discarded.
         """
-        return self._plugin_data
+        pass
 
     def _pydantic_model_class_maker_callback(self, ctx: ClassDefContext) -> None:
-        transformer = PydanticModelTransformer(ctx.cls, ctx.reason, ctx.api, self.plugin_config)
-        transformer.transform()
+        pass
 
     def _pydantic_model_metaclass_marker_callback(self, ctx: ClassDefContext) -> None:
         """Reset dataclass_transform_spec attribute of ModelMetaclass.
@@ -175,39 +163,11 @@ class PydanticPlugin(Plugin):
         Let the plugin handle it. This behavior can be disabled
         if 'debug_dataclass_transform' is set to True', for testing purposes.
         """
-        if self.plugin_config.debug_dataclass_transform:
-            return
-        info_metaclass = ctx.cls.info.declared_metaclass
-        assert info_metaclass, "callback not passed from 'get_metaclass_hook'"
-        if getattr(info_metaclass.type, 'dataclass_transform_spec', None):
-            info_metaclass.type.dataclass_transform_spec = None
+        pass
 
     def _pydantic_create_model_callback(self, ctx: DynamicClassDefContext) -> None:
         """Make variables assigned from `create_model()` usable as types by mypy."""
-        # Determine the base class from __base__ argument if provided
-        base_fullname = BASEMODEL_FULLNAME
-        for arg_name, arg_expr in zip(ctx.call.arg_names, ctx.call.args):
-            if arg_name == '__base__' and isinstance(arg_expr, RefExpr) and arg_expr.node is not None:
-                if isinstance(arg_expr.node, TypeInfo):
-                    base_fullname = arg_expr.node.fullname
-                elif isinstance(arg_expr.node, Var) and isinstance(arg_expr.node.type, Instance):
-                    base_fullname = arg_expr.node.type.type.fullname
-
-        base_sym = ctx.api.lookup_fully_qualified_or_none(base_fullname)
-        if base_sym is None or not isinstance(base_sym.node, TypeInfo):
-            # Fall back to BaseModel
-            base_sym = ctx.api.lookup_fully_qualified_or_none(BASEMODEL_FULLNAME)
-            if base_sym is None or not isinstance(base_sym.node, TypeInfo):
-                return
-
-        base_info = base_sym.node
-        base_instance = fill_typevars(base_info)
-        assert isinstance(base_instance, Instance)
-
-        info = ctx.api.basic_new_typeinfo(ctx.name, base_instance, ctx.call.line)
-        info.metaclass_type = base_info.metaclass_type
-
-        ctx.api.add_symbol_table_node(ctx.name, SymbolTableNode(MDEF, info))
+        pass
 
 
 class PydanticPluginConfig:
@@ -253,33 +213,12 @@ class PydanticPluginConfig:
 
     def to_data(self) -> dict[str, Any]:
         """Returns a dict of config names to their values."""
-        return {key: getattr(self, key) for key in self.__slots__}
+        pass
 
 
 def from_attributes_callback(ctx: MethodContext) -> Type:
     """Raise an error if from_attributes is not enabled."""
-    model_type: Instance
-    ctx_type = ctx.type
-    if isinstance(ctx_type, TypeType):
-        ctx_type = ctx_type.item
-    if isinstance(ctx_type, CallableType) and isinstance(ctx_type.ret_type, Instance):
-        model_type = ctx_type.ret_type  # called on the class
-    elif isinstance(ctx_type, Instance):
-        model_type = ctx_type  # called on an instance (unusual, but still valid)
-    else:  # pragma: no cover
-        detail = f'ctx.type: {ctx_type} (of type {ctx_type.__class__.__name__})'
-        error_unexpected_behavior(detail, ctx.api, ctx.context)
-        return ctx.default_return_type
-    pydantic_metadata = model_type.type.metadata.get(METADATA_KEY)
-    if pydantic_metadata is None:
-        return ctx.default_return_type
-    if not model_type.type.has_base(BASEMODEL_FULLNAME):
-        # not a Pydantic v2 model
-        return ctx.default_return_type
-    from_attributes = pydantic_metadata.get('config', {}).get('from_attributes')
-    if from_attributes is not True:
-        error_from_attributes(model_type.type.name, ctx.api, ctx.context)
-    return ctx.default_return_type
+    pass
 
 
 class PydanticModelField:
@@ -1199,10 +1138,7 @@ class ChangeExplicitTypeOfAny(TypeTranslator):
         super().__init__()
 
     def visit_any(self, t: AnyType) -> Type:  # noqa: D102
-        if t.type_of_any == TypeOfAny.explicit:
-            return t.copy_modified(type_of_any=self._type_of_any)
-        else:
-            return t
+        pass
 
 
 class ModelConfigData:
@@ -1264,7 +1200,7 @@ ERROR_EXTRA_FIELD_ROOT_MODEL = ErrorCode('pydantic-field', 'Extra field on RootM
 
 def error_from_attributes(model_name: str, api: CheckerPluginInterface, context: Context) -> None:
     """Emits an error when the model does not have `from_attributes=True`."""
-    api.fail(f'"{model_name}" does not have from_attributes=True', context, code=ERROR_ORM)
+    pass
 
 
 def error_invalid_config_value(name: str, api: SemanticAnalyzerPluginInterface, context: Context) -> None:
@@ -1394,19 +1330,4 @@ def parse_toml(config_file: str) -> dict[str, Any] | None:
 
     It reads configs from toml file and returns `None` if the file is not a toml file.
     """
-    if not config_file.endswith('.toml'):
-        return None
-
-    if sys.version_info >= (3, 11):
-        import tomllib as toml_
-    else:
-        try:
-            import tomli as toml_
-        except ImportError:  # pragma: no cover
-            import warnings
-
-            warnings.warn('No TOML parser installed, cannot read configuration from `pyproject.toml`.', stacklevel=2)
-            return None
-
-    with open(config_file, 'rb') as rf:
-        return toml_.load(rf)
+    pass

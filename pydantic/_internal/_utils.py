@@ -131,18 +131,11 @@ KeyType = TypeVar('KeyType')
 
 
 def deep_update(mapping: dict[KeyType, Any], *updating_mappings: dict[KeyType, Any]) -> dict[KeyType, Any]:
-    updated_mapping = mapping.copy()
-    for updating_mapping in updating_mappings:
-        for k, v in updating_mapping.items():
-            if k in updated_mapping and isinstance(updated_mapping[k], dict) and isinstance(v, dict):
-                updated_mapping[k] = deep_update(updated_mapping[k], v)
-            else:
-                updated_mapping[k] = v
-    return updated_mapping
+    pass
 
 
 def update_not_none(mapping: dict[Any, Any], **update: Any) -> None:
-    mapping.update({k: v for k, v in update.items() if v is not None})
+    pass
 
 
 T = TypeVar('T')
@@ -213,33 +206,7 @@ class ValueItems(_repr.Representation):
         >>> self._normalize_indexes({'__all__': True}, 4)
         {0: True, 1: True, 2: True, 3: True}
         """
-        normalized_items: dict[int | str, Any] = {}
-        all_items = None
-        for i, v in items.items():
-            if not (isinstance(v, Mapping) or isinstance(v, AbstractSet) or self.is_true(v)):
-                raise TypeError(f'Unexpected type of exclude value for index "{i}" {v.__class__}')
-            if i == '__all__':
-                all_items = self._coerce_value(v)
-                continue
-            if not isinstance(i, int):
-                raise TypeError(
-                    'Excluding fields from a sequence of sub-models or dicts must be performed index-wise: '
-                    'expected integer keys or keyword "__all__"'
-                )
-            normalized_i = v_length + i if i < 0 else i
-            normalized_items[normalized_i] = self.merge(v, normalized_items.get(normalized_i))
-
-        if not all_items:
-            return normalized_items
-        if self.is_true(all_items):
-            for i in range(v_length):
-                normalized_items.setdefault(i, ...)
-            return normalized_items
-        for i in range(v_length):
-            normalized_item = normalized_items.setdefault(i, {})
-            if not self.is_true(normalized_item):
-                normalized_items[i] = self.merge(all_items, normalized_item)
-        return normalized_items
+        pass
 
     @classmethod
     def merge(cls, base: Any, override: Any, intersect: bool = False) -> Any:
@@ -322,7 +289,7 @@ else:
 
         @cached_property
         def value(self) -> Any:
-            return self.get_value()
+            pass
 
         def __get__(self, instance: Any, owner: type[Any]) -> None:
             if instance is None:

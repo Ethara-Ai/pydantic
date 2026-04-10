@@ -32,12 +32,12 @@ def update_wrapper_attributes(wrapped: ValidateCallSupportedTypes, wrapper: Call
 
         @functools.wraps(wrapped)
         async def wrapper_function(*args, **kwargs):  # type: ignore
-            return await wrapper(*args, **kwargs)
+            pass
     else:
 
         @functools.wraps(wrapped)
         def wrapper_function(*args, **kwargs):
-            return wrapper(*args, **kwargs)
+            pass
 
     # We need to manually update this because `partial` object has no `__name__` and `__qualname__`.
     wrapper_function.__name__ = extract_function_name(wrapped)
@@ -90,45 +90,7 @@ class ValidateCallWrapper:
             self.__pydantic_complete__ = False
 
     def _create_validators(self) -> None:
-        gen_schema = GenerateSchema(self.config_wrapper, self.ns_resolver)
-        schema = gen_schema.clean_schema(gen_schema.generate_schema(self.function))
-        core_config = self.config_wrapper.core_config(title=self.qualname)
-
-        self.__pydantic_validator__ = create_schema_validator(
-            schema,
-            self.schema_type,
-            self.module,
-            self.qualname,
-            'validate_call',
-            core_config,
-            self.config_wrapper.plugin_settings,
-        )
-        if self.validate_return:
-            signature = signature_no_eval(self.function)
-            return_type = signature.return_annotation if signature.return_annotation is not signature.empty else Any
-            gen_schema = GenerateSchema(self.config_wrapper, self.ns_resolver)
-            schema = gen_schema.clean_schema(gen_schema.generate_schema(return_type))
-            validator = create_schema_validator(
-                schema,
-                self.schema_type,
-                self.module,
-                self.qualname,
-                'validate_call',
-                core_config,
-                self.config_wrapper.plugin_settings,
-            )
-            if inspect.iscoroutinefunction(self.function):
-
-                async def return_val_wrapper(aw: Awaitable[Any]) -> None:
-                    return validator.validate_python(await aw)
-
-                self.__return_pydantic_validator__ = return_val_wrapper
-            else:
-                self.__return_pydantic_validator__ = validator.validate_python
-        else:
-            self.__return_pydantic_validator__ = None
-
-        self.__pydantic_complete__ = True
+        pass
 
     def __call__(self, *args: Any, **kwargs: Any) -> Any:
         if not self.__pydantic_complete__:

@@ -47,7 +47,7 @@ class _ValidateAsDefer:
 
     @cached_property
     def tp(self) -> type[Any]:
-        return self.func()
+        pass
 
 
 @dataclass(**_slots_frozen)
@@ -178,7 +178,7 @@ class _Pipeline(Generic[_InT, _OutT]):
 
         This is useful when you need to reference the class in it's own type annotations.
         """
-        return _Pipeline[_InT, _NewOutT](self._steps + (_ValidateAsDefer(func),))
+        pass
 
     # constraints
     @overload
@@ -243,7 +243,7 @@ class _Pipeline(Generic[_InT, _OutT]):
 
     def predicate(self: _Pipeline[_InT, _NewOutT], func: Callable[[_NewOutT], bool]) -> _Pipeline[_InT, _NewOutT]:
         """Constrain a value to meet a certain predicate."""
-        return self.constrain(annotated_types.Predicate(func))
+        pass
 
     def gt(self: _Pipeline[_InT, _NewOutGt], gt: _NewOutGt) -> _Pipeline[_InT, _NewOutGt]:
         """Constrain a value to be greater than a certain value."""
@@ -263,7 +263,7 @@ class _Pipeline(Generic[_InT, _OutT]):
 
     def len(self: _Pipeline[_InT, _NewOutLen], min_len: int, max_len: int | None = None) -> _Pipeline[_InT, _NewOutLen]:
         """Constrain a value to have a certain length."""
-        return self.constrain(annotated_types.Len(min_len, max_len))
+        pass
 
     @overload
     def multiple_of(self: _Pipeline[_InT, _NewOutDiv], multiple_of: _NewOutDiv) -> _Pipeline[_InT, _NewOutDiv]: ...
@@ -277,19 +277,19 @@ class _Pipeline(Generic[_InT, _OutT]):
 
     def eq(self: _Pipeline[_InT, _OutT], value: _OutT) -> _Pipeline[_InT, _OutT]:
         """Constrain a value to be equal to a certain value."""
-        return self.constrain(_Eq(value))
+        pass
 
     def not_eq(self: _Pipeline[_InT, _OutT], value: _OutT) -> _Pipeline[_InT, _OutT]:
         """Constrain a value to not be equal to a certain value."""
-        return self.constrain(_NotEq(value))
+        pass
 
     def in_(self: _Pipeline[_InT, _OutT], values: Container[_OutT]) -> _Pipeline[_InT, _OutT]:
         """Constrain a value to be in a certain set."""
-        return self.constrain(_In(values))
+        pass
 
     def not_in(self: _Pipeline[_InT, _OutT], values: Container[_OutT]) -> _Pipeline[_InT, _OutT]:
         """Constrain a value to not be in a certain set."""
-        return self.constrain(_NotIn(values))
+        pass
 
     # timezone methods
     def datetime_tz_naive(self: _Pipeline[_InT, datetime.datetime]) -> _Pipeline[_InT, datetime.datetime]:
@@ -301,48 +301,48 @@ class _Pipeline(Generic[_InT, _OutT]):
     def datetime_tz(
         self: _Pipeline[_InT, datetime.datetime], tz: datetime.tzinfo
     ) -> _Pipeline[_InT, datetime.datetime]:
-        return self.constrain(annotated_types.Timezone(tz))  # type: ignore
+        pass
 
     def datetime_with_tz(
         self: _Pipeline[_InT, datetime.datetime], tz: datetime.tzinfo | None
     ) -> _Pipeline[_InT, datetime.datetime]:
-        return self.transform(partial(datetime.datetime.replace, tzinfo=tz))
+        pass
 
     # string methods
     def str_lower(self: _Pipeline[_InT, str]) -> _Pipeline[_InT, str]:
-        return self.transform(str.lower)
+        pass
 
     def str_upper(self: _Pipeline[_InT, str]) -> _Pipeline[_InT, str]:
-        return self.transform(str.upper)
+        pass
 
     def str_title(self: _Pipeline[_InT, str]) -> _Pipeline[_InT, str]:
-        return self.transform(str.title)
+        pass
 
     def str_strip(self: _Pipeline[_InT, str]) -> _Pipeline[_InT, str]:
-        return self.transform(str.strip)
+        pass
 
     def str_pattern(self: _Pipeline[_InT, str], pattern: str) -> _Pipeline[_InT, str]:
-        return self.constrain(re.compile(pattern))
+        pass
 
     def str_contains(self: _Pipeline[_InT, str], substring: str) -> _Pipeline[_InT, str]:
-        return self.predicate(lambda v: substring in v)
+        pass
 
     def str_starts_with(self: _Pipeline[_InT, str], prefix: str) -> _Pipeline[_InT, str]:
-        return self.predicate(lambda v: v.startswith(prefix))
+        pass
 
     def str_ends_with(self: _Pipeline[_InT, str], suffix: str) -> _Pipeline[_InT, str]:
-        return self.predicate(lambda v: v.endswith(suffix))
+        pass
 
     # operators
     def otherwise(self, other: _Pipeline[_OtherIn, _OtherOut]) -> _Pipeline[_InT | _OtherIn, _OutT | _OtherOut]:
         """Combine two validation chains, returning the result of the first chain if it succeeds, and the second chain if it fails."""
-        return _Pipeline((_PipelineOr(self, other),))
+        pass
 
     __or__ = otherwise
 
     def then(self, other: _Pipeline[_OutT, _OtherOut]) -> _Pipeline[_InT, _OtherOut]:
         """Pipe the result of one validation chain into another."""
-        return _Pipeline((_PipelineAnd(self, other),))
+        pass
 
     __and__ = then
 
@@ -370,32 +370,11 @@ transform = _Pipeline[Any, Any]((_ValidateAs(_FieldTypeMarker),)).transform
 def _check_func(
     func: Callable[[Any], bool], predicate_err: str | Callable[[], str], s: cs.CoreSchema | None
 ) -> cs.CoreSchema:
-    def handler(v: Any) -> Any:
-        if func(v):
-            return v
-        raise ValueError(f'Expected {predicate_err if isinstance(predicate_err, str) else predicate_err()}')
-
-    if s is None:
-        return cs.no_info_plain_validator_function(handler)
-    else:
-        return cs.no_info_after_validator_function(handler, s)
+    pass
 
 
 def _apply_step(step: _Step, s: cs.CoreSchema | None, handler: GetCoreSchemaHandler, source_type: Any) -> cs.CoreSchema:
-    if isinstance(step, _ValidateAs):
-        s = _apply_parse(s, step.tp, step.strict, handler, source_type)
-    elif isinstance(step, _ValidateAsDefer):
-        s = _apply_parse(s, step.tp, False, handler, source_type)
-    elif isinstance(step, _Transform):
-        s = _apply_transform(s, step.func, handler)
-    elif isinstance(step, _Constraint):
-        s = _apply_constraint(s, step.constraint)
-    elif isinstance(step, _PipelineOr):
-        s = cs.union_schema([handler(step.left), handler(step.right)])
-    else:
-        assert isinstance(step, _PipelineAnd)
-        s = cs.chain_schema([handler(step.left), handler(step.right)])
-    return s
+    pass
 
 
 def _apply_parse(
@@ -405,241 +384,20 @@ def _apply_parse(
     handler: GetCoreSchemaHandler,
     source_type: Any,
 ) -> cs.CoreSchema:
-    if tp is _FieldTypeMarker:
-        return cs.chain_schema([s, handler(source_type)]) if s else handler(source_type)
-
-    if strict:
-        tp = Annotated[tp, Strict()]  # type: ignore
-
-    if s and s['type'] == 'any':
-        return handler(tp)
-    else:
-        return cs.chain_schema([s, handler(tp)]) if s else handler(tp)
+    pass
 
 
 def _apply_transform(
     s: cs.CoreSchema | None, func: Callable[[Any], Any], handler: GetCoreSchemaHandler
 ) -> cs.CoreSchema:
-    if s is None:
-        return cs.no_info_plain_validator_function(func)
-
-    if s['type'] == 'str':
-        if func is str.strip:
-            s = s.copy()
-            s['strip_whitespace'] = True
-            return s
-        elif func is str.lower:
-            s = s.copy()
-            s['to_lower'] = True
-            return s
-        elif func is str.upper:
-            s = s.copy()
-            s['to_upper'] = True
-            return s
-
-    return cs.no_info_after_validator_function(func, s)
+    pass
 
 
 def _apply_constraint(  # noqa: C901
     s: cs.CoreSchema | None, constraint: _ConstraintAnnotation
 ) -> cs.CoreSchema:
     """Apply a single constraint to a schema."""
-    if isinstance(constraint, annotated_types.Gt):
-        gt = constraint.gt
-        if s and s['type'] in {'int', 'float', 'decimal'}:
-            s = s.copy()
-            if s['type'] == 'int' and isinstance(gt, int):
-                s['gt'] = gt
-            elif s['type'] == 'float' and isinstance(gt, float):
-                s['gt'] = gt
-            elif s['type'] == 'decimal' and isinstance(gt, Decimal):
-                s['gt'] = gt
-        else:
-
-            def check_gt(v: Any) -> bool:
-                return v > gt
-
-            s = _check_func(check_gt, f'> {gt}', s)
-    elif isinstance(constraint, annotated_types.Ge):
-        ge = constraint.ge
-        if s and s['type'] in {'int', 'float', 'decimal'}:
-            s = s.copy()
-            if s['type'] == 'int' and isinstance(ge, int):
-                s['ge'] = ge
-            elif s['type'] == 'float' and isinstance(ge, float):
-                s['ge'] = ge
-            elif s['type'] == 'decimal' and isinstance(ge, Decimal):
-                s['ge'] = ge
-
-        def check_ge(v: Any) -> bool:
-            return v >= ge
-
-        s = _check_func(check_ge, f'>= {ge}', s)
-    elif isinstance(constraint, annotated_types.Lt):
-        lt = constraint.lt
-        if s and s['type'] in {'int', 'float', 'decimal'}:
-            s = s.copy()
-            if s['type'] == 'int' and isinstance(lt, int):
-                s['lt'] = lt
-            elif s['type'] == 'float' and isinstance(lt, float):
-                s['lt'] = lt
-            elif s['type'] == 'decimal' and isinstance(lt, Decimal):
-                s['lt'] = lt
-
-        def check_lt(v: Any) -> bool:
-            return v < lt
-
-        s = _check_func(check_lt, f'< {lt}', s)
-    elif isinstance(constraint, annotated_types.Le):
-        le = constraint.le
-        if s and s['type'] in {'int', 'float', 'decimal'}:
-            s = s.copy()
-            if s['type'] == 'int' and isinstance(le, int):
-                s['le'] = le
-            elif s['type'] == 'float' and isinstance(le, float):
-                s['le'] = le
-            elif s['type'] == 'decimal' and isinstance(le, Decimal):
-                s['le'] = le
-
-        def check_le(v: Any) -> bool:
-            return v <= le
-
-        s = _check_func(check_le, f'<= {le}', s)
-    elif isinstance(constraint, annotated_types.Len):
-        min_len = constraint.min_length
-        max_len = constraint.max_length
-
-        if s and s['type'] in {'str', 'list', 'tuple', 'set', 'frozenset', 'dict'}:
-            assert (
-                s['type'] == 'str'
-                or s['type'] == 'list'
-                or s['type'] == 'tuple'
-                or s['type'] == 'set'
-                or s['type'] == 'dict'
-                or s['type'] == 'frozenset'
-            )
-            s = s.copy()
-            if min_len != 0:
-                s['min_length'] = min_len
-            if max_len is not None:
-                s['max_length'] = max_len
-
-        def check_len(v: Any) -> bool:
-            if max_len is not None:
-                return (min_len <= len(v)) and (len(v) <= max_len)
-            return min_len <= len(v)
-
-        s = _check_func(check_len, f'length >= {min_len} and length <= {max_len}', s)
-    elif isinstance(constraint, annotated_types.MultipleOf):
-        multiple_of = constraint.multiple_of
-        if s and s['type'] in {'int', 'float', 'decimal'}:
-            s = s.copy()
-            if s['type'] == 'int' and isinstance(multiple_of, int):
-                s['multiple_of'] = multiple_of
-            elif s['type'] == 'float' and isinstance(multiple_of, float):
-                s['multiple_of'] = multiple_of
-            elif s['type'] == 'decimal' and isinstance(multiple_of, Decimal):
-                s['multiple_of'] = multiple_of
-
-        def check_multiple_of(v: Any) -> bool:
-            return v % multiple_of == 0
-
-        s = _check_func(check_multiple_of, f'% {multiple_of} == 0', s)
-    elif isinstance(constraint, annotated_types.Timezone):
-        tz = constraint.tz
-
-        if tz is ...:
-            if s and s['type'] == 'datetime':
-                s = s.copy()
-                s['tz_constraint'] = 'aware'
-            else:
-
-                def check_tz_aware(v: object) -> bool:
-                    assert isinstance(v, datetime.datetime)
-                    return v.tzinfo is not None
-
-                s = _check_func(check_tz_aware, 'timezone aware', s)
-        elif tz is None:
-            if s and s['type'] == 'datetime':
-                s = s.copy()
-                s['tz_constraint'] = 'naive'
-            else:
-
-                def check_tz_naive(v: object) -> bool:
-                    assert isinstance(v, datetime.datetime)
-                    return v.tzinfo is None
-
-                s = _check_func(check_tz_naive, 'timezone naive', s)
-        else:
-            raise NotImplementedError('Constraining to a specific timezone is not yet supported')
-    elif isinstance(constraint, annotated_types.Interval):
-        if constraint.ge:
-            s = _apply_constraint(s, annotated_types.Ge(constraint.ge))
-        if constraint.gt:
-            s = _apply_constraint(s, annotated_types.Gt(constraint.gt))
-        if constraint.le:
-            s = _apply_constraint(s, annotated_types.Le(constraint.le))
-        if constraint.lt:
-            s = _apply_constraint(s, annotated_types.Lt(constraint.lt))
-        assert s is not None
-    elif isinstance(constraint, annotated_types.Predicate):
-        func = constraint.func
-        # Same logic as in `_known_annotated_metadata.apply_known_metadata()`:
-        predicate_name = f'{func.__qualname__!r} ' if hasattr(func, '__qualname__') else ''
-
-        def predicate_func(v: Any) -> Any:
-            if not func(v):
-                raise PydanticCustomError(
-                    'predicate_failed',
-                    f'Predicate {predicate_name}failed',  # pyright: ignore[reportArgumentType]
-                )
-            return v
-
-        if s is None:
-            s = cs.no_info_plain_validator_function(predicate_func)
-        else:
-            s = cs.no_info_after_validator_function(predicate_func, s)
-    elif isinstance(constraint, _NotEq):
-        value = constraint.value
-
-        def check_not_eq(v: Any) -> bool:
-            return operator.__ne__(v, value)
-
-        s = _check_func(check_not_eq, f'!= {value}', s)
-    elif isinstance(constraint, _Eq):
-        value = constraint.value
-
-        def check_eq(v: Any) -> bool:
-            return operator.__eq__(v, value)
-
-        s = _check_func(check_eq, f'== {value}', s)
-    elif isinstance(constraint, _In):
-        values = constraint.values
-
-        def check_in(v: Any) -> bool:
-            return operator.__contains__(values, v)
-
-        s = _check_func(check_in, f'in {values}', s)
-    elif isinstance(constraint, _NotIn):
-        values = constraint.values
-
-        def check_not_in(v: Any) -> bool:
-            return operator.__not__(operator.__contains__(values, v))
-
-        s = _check_func(check_not_in, f'not in {values}', s)
-    else:
-        assert isinstance(constraint, Pattern)
-        if s and s['type'] == 'str':
-            s = s.copy()
-            s['pattern'] = constraint.pattern
-        else:
-
-            def check_pattern(v: object) -> bool:
-                assert isinstance(v, str)
-                return constraint.match(v) is not None
-
-            s = _check_func(check_pattern, f'~ {constraint.pattern}', s)
-    return s
+    pass
 
 
 class _SupportsRange(annotated_types.SupportsLe, annotated_types.SupportsGe, Protocol):

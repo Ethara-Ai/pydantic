@@ -56,28 +56,7 @@ class BaseSettings(BaseModel):
         _secrets_dir: Optional[StrPath] = None,
     ) -> Dict[str, Any]:
         # Configure built-in sources
-        init_settings = InitSettingsSource(init_kwargs=init_kwargs)
-        env_settings = EnvSettingsSource(
-            env_file=(_env_file if _env_file != env_file_sentinel else self.__config__.env_file),
-            env_file_encoding=(
-                _env_file_encoding if _env_file_encoding is not None else self.__config__.env_file_encoding
-            ),
-            env_nested_delimiter=(
-                _env_nested_delimiter if _env_nested_delimiter is not None else self.__config__.env_nested_delimiter
-            ),
-            env_prefix_len=len(self.__config__.env_prefix),
-        )
-        file_secret_settings = SecretsSettingsSource(secrets_dir=_secrets_dir or self.__config__.secrets_dir)
-        # Provide a hook to set built-in sources priority and add / remove sources
-        sources = self.__config__.customise_sources(
-            init_settings=init_settings, env_settings=env_settings, file_secret_settings=file_secret_settings
-        )
-        if sources:
-            return deep_update(*reversed([source(self) for source in sources]))
-        else:
-            # no one should mean to do this, but I think returning an empty dict is marginally preferable
-            # to an informative error and much better than a confusing error
-            return {}
+        pass
 
     class Config(BaseConfig):
         env_prefix: str = ''
@@ -125,11 +104,11 @@ class BaseSettings(BaseModel):
             env_settings: SettingsSourceCallable,
             file_secret_settings: SettingsSourceCallable,
         ) -> Tuple[SettingsSourceCallable, ...]:
-            return init_settings, env_settings, file_secret_settings
+            pass
 
         @classmethod
         def parse_env_var(cls, field_name: str, raw_val: str) -> Any:
-            return cls.json_loads(raw_val)
+            pass
 
     # populated by the metaclass using the Config class defined above, annotated here to help IDEs only
     __config__: ClassVar[Type[Config]]
@@ -211,38 +190,13 @@ class EnvSettingsSource:
         return d
 
     def _read_env_files(self, case_sensitive: bool) -> Dict[str, Optional[str]]:
-        env_files = self.env_file
-        if env_files is None:
-            return {}
-
-        if isinstance(env_files, (str, os.PathLike)):
-            env_files = [env_files]
-
-        dotenv_vars = {}
-        for env_file in env_files:
-            env_path = Path(env_file).expanduser()
-            if env_path.is_file():
-                dotenv_vars.update(
-                    read_env_file(env_path, encoding=self.env_file_encoding, case_sensitive=case_sensitive)
-                )
-
-        return dotenv_vars
+        pass
 
     def field_is_complex(self, field: ModelField) -> Tuple[bool, bool]:
         """
         Find out if a field is complex, and if so whether JSON errors should be ignored
         """
-        if lenient_issubclass(field.annotation, JsonWrapper):
-            return False, False
-
-        if field.is_complex():
-            allow_parse_failure = False
-        elif is_union(get_origin(field.type_)) and field.sub_fields and any(f.is_complex() for f in field.sub_fields):
-            allow_parse_failure = True
-        else:
-            return False, False
-
-        return True, allow_parse_failure
+        pass
 
     def explode_env_vars(self, field: ModelField, env_vars: Mapping[str, Optional[str]]) -> Dict[str, Any]:
         """
@@ -250,20 +204,7 @@ class EnvSettingsSource:
 
         This is applied to a single field, hence filtering by env_var prefix.
         """
-        prefixes = [f'{env_name}{self.env_nested_delimiter}' for env_name in field.field_info.extra['env_names']]
-        result: Dict[str, Any] = {}
-        for env_name, env_val in env_vars.items():
-            if not any(env_name.startswith(prefix) for prefix in prefixes):
-                continue
-            # we remove the prefix before splitting in case the prefix has characters in common with the delimiter
-            env_name_without_prefix = env_name[self.env_prefix_len :]
-            _, *keys, last_key = env_name_without_prefix.split(self.env_nested_delimiter)
-            env_var = result
-            for key in keys:
-                env_var = env_var.setdefault(key, {})
-            env_var[last_key] = env_val
-
-        return result
+        pass
 
     def __repr__(self) -> str:
         return (
@@ -326,25 +267,11 @@ class SecretsSettingsSource:
 def read_env_file(
     file_path: StrPath, *, encoding: str = None, case_sensitive: bool = False
 ) -> Dict[str, Optional[str]]:
-    try:
-        from dotenv import dotenv_values
-    except ImportError as e:
-        raise ImportError('python-dotenv is not installed, run `pip install pydantic[dotenv]`') from e
-
-    file_vars: Dict[str, Optional[str]] = dotenv_values(file_path, encoding=encoding or 'utf8')
-    if not case_sensitive:
-        return {k.lower(): v for k, v in file_vars.items()}
-    else:
-        return file_vars
+    pass
 
 
 def find_case_path(dir_path: Path, file_name: str, case_sensitive: bool) -> Optional[Path]:
     """
     Find a file within path's directory matching filename, optionally ignoring case.
     """
-    for f in dir_path.iterdir():
-        if f.name == file_name:
-            return f
-        elif not case_sensitive and f.name.lower() == file_name.lower():
-            return f
-    return None
+    pass

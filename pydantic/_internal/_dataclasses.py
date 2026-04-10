@@ -206,21 +206,7 @@ def is_stdlib_dataclass(cls: type[Any], /) -> TypeIs[type[StandardDataclass]]:
 
 
 def as_dataclass_field(pydantic_field: FieldInfo) -> dataclasses.Field[Any]:
-    field_args: dict[str, Any] = {'default': pydantic_field}
-
-    # Needed because if `doc` is set, the dataclass slots will be a dict (field name -> doc) instead of a tuple:
-    if sys.version_info >= (3, 14) and pydantic_field.description is not None:
-        field_args['doc'] = pydantic_field.description
-
-    # Needed as the stdlib dataclass module processes kw_only in a specific way during class construction:
-    if sys.version_info >= (3, 10) and pydantic_field.kw_only is not None:
-        field_args['kw_only'] = pydantic_field.kw_only
-
-    # Needed as the stdlib dataclass modules generates `__repr__()` during class construction:
-    if pydantic_field.repr is not True:
-        field_args['repr'] = pydantic_field.repr
-
-    return dataclasses.field(**field_args)
+    pass
 
 
 DcFields: TypeAlias = dict[str, dataclasses.Field[Any]]
@@ -278,38 +264,4 @@ def patch_base_fields(cls: type[Any]) -> Generator[None]:
         The previous implemented approach was mutating the `__annotations__` dict of `cls`, which is no longer a
         safe operation in Python 3.14+, and resulted in unexpected behavior with field ordering anyway.
     """
-    # A list of two-tuples, the first element being a reference to the
-    # dataclass fields dictionary, the second element being a mapping between
-    # the field names that were modified, and their original `Field`:
-    original_fields_list: list[tuple[DcFields, DcFields]] = []
-
-    for base in cls.__mro__[1:]:
-        dc_fields: dict[str, dataclasses.Field[Any]] = base.__dict__.get('__dataclass_fields__', {})
-        dc_fields_with_pydantic_field_defaults = {
-            field_name: field
-            for field_name, field in dc_fields.items()
-            if isinstance(field.default, FieldInfo)
-            # Only do the patching if one of the affected attributes is set:
-            and (field.default.description is not None or field.default.kw_only or field.default.repr is not True)
-        }
-        if dc_fields_with_pydantic_field_defaults:
-            original_fields_list.append((dc_fields, dc_fields_with_pydantic_field_defaults))
-            for field_name, field in dc_fields_with_pydantic_field_defaults.items():
-                default = cast(FieldInfo, field.default)
-                # `dataclasses.Field` isn't documented as working with `copy.copy()`.
-                # It is a class with `__slots__`, so should work (and we hope for the best):
-                new_dc_field = copy.copy(field)
-                # For base fields, no need to set `doc` from `FieldInfo.description`, this is only relevant
-                # for the class under construction and handled in `as_dataclass_field()`.
-                if sys.version_info >= (3, 10) and default.kw_only:
-                    new_dc_field.kw_only = True
-                if default.repr is not True:
-                    new_dc_field.repr = default.repr
-                dc_fields[field_name] = new_dc_field
-
-    try:
-        yield
-    finally:
-        for fields, original_fields in original_fields_list:
-            for field_name, original_field in original_fields.items():
-                fields[field_name] = original_field
+    pass

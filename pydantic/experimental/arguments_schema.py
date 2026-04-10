@@ -32,13 +32,4 @@ def generate_arguments_schema(
     Returns:
         The generated schema.
     """
-    generate_schema = _generate_schema.GenerateSchema(
-        _config.ConfigWrapper(config),
-        ns_resolver=_namespace_utils.NsResolver(namespaces_tuple=_namespace_utils.ns_for_function(func)),
-    )
-
-    if schema_type == 'arguments':
-        schema = generate_schema._arguments_schema(func, parameters_callback)  # pyright: ignore[reportArgumentType]
-    else:
-        schema = generate_schema._arguments_v3_schema(func, parameters_callback)  # pyright: ignore[reportArgumentType]
-    return generate_schema.clean_schema(schema)
+    pass

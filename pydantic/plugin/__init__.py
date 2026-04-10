@@ -88,7 +88,7 @@ class BaseValidateHandlerProtocol(Protocol):
         Args:
             result: The result of the validation.
         """
-        return
+        pass
 
     def on_error(self, error: ValidationError) -> None:
         """Callback to be notified of validation errors.
@@ -96,7 +96,7 @@ class BaseValidateHandlerProtocol(Protocol):
         Args:
             error: The validation error.
         """
-        return
+        pass
 
     def on_exception(self, exception: Exception) -> None:
         """Callback to be notified of validation exceptions.
@@ -104,7 +104,7 @@ class BaseValidateHandlerProtocol(Protocol):
         Args:
             exception: The exception raised during validation.
         """
-        return
+        pass
 
 
 class ValidatePythonHandlerProtocol(BaseValidateHandlerProtocol, Protocol):

@@ -148,22 +148,7 @@ class BaseConfig:
 
 
 def get_config(config: Union[ConfigDict, Type[object], None]) -> Type[BaseConfig]:
-    if config is None:
-        return BaseConfig
-
-    else:
-        config_dict = (
-            config
-            if isinstance(config, dict)
-            else {k: getattr(config, k) for k in dir(config) if not k.startswith('__')}
-        )
-
-        class Config(BaseConfig):
-            ...
-
-        for k, v in config_dict.items():
-            setattr(Config, k, v)
-        return Config
+    pass
 
 
 def inherit_config(self_config: 'ConfigType', parent_config: 'ConfigType', **namespace: Any) -> 'ConfigType':

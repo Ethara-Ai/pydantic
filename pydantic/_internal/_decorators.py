@@ -187,14 +187,7 @@ class PydanticDescriptorProxy(Generic[ReturnType]):
                 setattr(self, attr, f)
 
     def _call_wrapped_attr(self, func: Callable[[Any], None], *, name: str) -> PydanticDescriptorProxy[ReturnType]:
-        self.wrapped = getattr(self.wrapped, name)(func)
-        if isinstance(self.wrapped, property):
-            # update ComputedFieldInfo.wrapped_property
-            from ..fields import ComputedFieldInfo
-
-            if isinstance(self.decorator_info, ComputedFieldInfo):
-                self.decorator_info.wrapped_property = self.wrapped
-        return self
+        pass
 
     def __get__(self, obj: object | None, obj_type: type[object] | None = None) -> PydanticDescriptorProxy[ReturnType]:
         try:
@@ -638,20 +631,7 @@ def inspect_annotated_serializer(serializer: Callable[..., Any], mode: Literal['
     Returns:
         info_arg
     """
-    try:
-        sig = signature_no_eval(serializer)
-    except (ValueError, TypeError):
-        # `inspect.signature` might not be able to infer a signature, e.g. with C objects.
-        # In this case, we assume no info argument is present:
-        return False
-    info_arg = _serializer_info_arg(mode, count_positional_required_params(sig))
-    if info_arg is None:
-        raise PydanticUserError(
-            f'Unrecognized field_serializer function signature for {serializer} with `mode={mode}`:{sig}',
-            code='field-serializer-signature',
-        )
-    else:
-        return info_arg
+    pass
 
 
 def inspect_model_serializer(serializer: Callable[..., Any], mode: Literal['plain', 'wrap']) -> bool:

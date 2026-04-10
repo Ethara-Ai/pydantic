@@ -532,7 +532,7 @@ class ModelField(Representation):
 
     @property
     def alt_alias(self) -> bool:
-        return self.name != self.alias
+        pass
 
     def prepare(self) -> None:
         """
@@ -1160,13 +1160,7 @@ class ModelField(Representation):
         """
         Whether the field is "complex" eg. env variables should be parsed as JSON.
         """
-        from pydantic.v1.main import BaseModel
-
-        return (
-            self.shape != SHAPE_SINGLETON
-            or hasattr(self.type_, '__pydantic_model__')
-            or lenient_issubclass(self.type_, (BaseModel, list, set, frozenset, dict))
-        )
+        pass
 
     def _type_display(self) -> PyObjectStr:
         t = display_as_type(self.type_)

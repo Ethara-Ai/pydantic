@@ -1021,20 +1021,7 @@ else:
 
         @staticmethod
         def _serialize(v: Any) -> str:
-            if isinstance(v, ModuleType):
-                return v.__name__
-            elif hasattr(v, '__module__') and hasattr(v, '__name__'):
-                return f'{v.__module__}.{v.__name__}'
-            # Handle special cases for sys.XXX streams
-            # if we see more of these, we should consider a more general solution
-            elif hasattr(v, 'name'):
-                if v.name == '<stdout>':
-                    return 'sys.stdout'
-                elif v.name == '<stdin>':
-                    return 'sys.stdin'
-                elif v.name == '<stderr>':
-                    return 'sys.stderr'
-            return v
+            pass
 
         def __repr__(self) -> str:
             return 'ImportString'
@@ -1309,33 +1296,19 @@ class PathType:
 
     @staticmethod
     def validate_file(path: Path, _: core_schema.ValidationInfo) -> Path:
-        if path.is_file():
-            return path
-        else:
-            raise PydanticCustomError('path_not_file', 'Path does not point to a file')
+        pass
 
     @staticmethod
     def validate_socket(path: Path, _: core_schema.ValidationInfo) -> Path:
-        if path.is_socket():
-            return path
-        else:
-            raise PydanticCustomError('path_not_socket', 'Path does not point to a socket')
+        pass
 
     @staticmethod
     def validate_directory(path: Path, _: core_schema.ValidationInfo) -> Path:
-        if path.is_dir():
-            return path
-        else:
-            raise PydanticCustomError('path_not_directory', 'Path does not point to a directory')
+        pass
 
     @staticmethod
     def validate_new(path: Path, _: core_schema.ValidationInfo) -> Path:
-        if path.exists():
-            raise PydanticCustomError('path_exists', 'Path already exists')
-        elif not path.parent.exists():
-            raise PydanticCustomError('parent_does_not_exist', 'Parent directory does not exist')
-        else:
-            return path
+        pass
 
     def __hash__(self) -> int:
         return hash(self.path_type)
@@ -1568,10 +1541,7 @@ class _SecretBase(Generic[SecretType]):
 
 
 def _serialize_secret(value: Secret[SecretType], info: core_schema.SerializationInfo) -> str | Secret[SecretType]:
-    if info.mode == 'json':
-        return str(value)
-    else:
-        return value
+    pass
 
 
 class Secret(_SecretBase[SecretType]):
@@ -1705,10 +1675,7 @@ class Secret(_SecretBase[SecretType]):
         inner_schema = handler.generate_schema(inner_type)  # type: ignore
 
         def validate_secret_value(value, handler) -> Secret[SecretType]:
-            if isinstance(value, Secret):
-                value = value.get_secret_value()
-            validated_inner = handler(value)
-            return cls(validated_inner)
+            pass
 
         return core_schema.json_or_python_schema(
             python_schema=core_schema.no_info_wrap_validator_function(
@@ -1741,12 +1708,7 @@ def _secret_display(value: SecretType) -> str:  # type: ignore
 def _serialize_secret_field(
     value: _SecretField[SecretType], info: core_schema.SerializationInfo
 ) -> str | _SecretField[SecretType]:
-    if info.mode == 'json':
-        # we want the output to always be string without the `b'` prefix for bytes,
-        # hence we just use `secret_display`
-        return _secret_display(value.get_secret_value())
-    else:
-        return value
+    pass
 
 
 class _SecretField(_SecretBase[SecretType]):
@@ -1756,36 +1718,10 @@ class _SecretField(_SecretBase[SecretType]):
     @classmethod
     def __get_pydantic_core_schema__(cls, source: type[Any], handler: GetCoreSchemaHandler) -> core_schema.CoreSchema:
         def get_json_schema(_core_schema: core_schema.CoreSchema, handler: GetJsonSchemaHandler) -> JsonSchemaValue:
-            json_schema = handler(cls._inner_schema)
-            _utils.update_not_none(
-                json_schema,
-                type='string',
-                writeOnly=True,
-                format='password',
-            )
-            return json_schema
+            pass
 
         def get_secret_schema(strict: bool) -> CoreSchema:
-            inner_schema = {**cls._inner_schema, 'strict': strict}
-            json_schema = core_schema.no_info_after_validator_function(
-                source,  # construct the type
-                inner_schema,  # pyright: ignore[reportArgumentType]
-            )
-            return core_schema.json_or_python_schema(
-                python_schema=core_schema.union_schema(
-                    [
-                        core_schema.is_instance_schema(source),
-                        json_schema,
-                    ],
-                    custom_error_type=cls._error_kind,
-                ),
-                json_schema=json_schema,
-                serialization=core_schema.plain_serializer_function_ser_schema(
-                    _serialize_secret_field,
-                    info_arg=True,
-                    when_used='always',
-                ),
-            )
+            pass
 
         return core_schema.lax_or_strict_schema(
             lax_schema=get_secret_schema(strict=False),
@@ -1962,67 +1898,24 @@ class PaymentCardNumber(str):
         Returns:
             A masked card number string.
         """
-        num_masked = len(self) - 10  # len(bin) + len(last4) == 10
-        return f'{self.bin}{"*" * num_masked}{self.last4}'
+        pass
 
     @classmethod
     def validate_digits(cls, card_number: str) -> None:
         """Validate that the card number is all digits."""
-        if not card_number.isdigit():
-            raise PydanticCustomError('payment_card_number_digits', 'Card number is not all digits')
+        pass
 
     @classmethod
     def validate_luhn_check_digit(cls, card_number: str) -> str:
         """Based on: https://en.wikipedia.org/wiki/Luhn_algorithm."""
-        sum_ = int(card_number[-1])
-        length = len(card_number)
-        parity = length % 2
-        for i in range(length - 1):
-            digit = int(card_number[i])
-            if i % 2 == parity:
-                digit *= 2
-            if digit > 9:
-                digit -= 9
-            sum_ += digit
-        valid = sum_ % 10 == 0
-        if not valid:
-            raise PydanticCustomError('payment_card_number_luhn', 'Card number is not luhn valid')
-        return card_number
+        pass
 
     @staticmethod
     def validate_brand(card_number: str) -> PaymentCardBrand:
         """Validate length based on BIN for major brands:
         https://en.wikipedia.org/wiki/Payment_card_number#Issuer_identification_number_(IIN).
         """
-        if card_number[0] == '4':
-            brand = PaymentCardBrand.visa
-        elif 51 <= int(card_number[:2]) <= 55:
-            brand = PaymentCardBrand.mastercard
-        elif card_number[:2] in {'34', '37'}:
-            brand = PaymentCardBrand.amex
-        else:
-            brand = PaymentCardBrand.other
-
-        required_length: None | int | str = None
-        if brand in PaymentCardBrand.mastercard:
-            required_length = 16
-            valid = len(card_number) == required_length
-        elif brand == PaymentCardBrand.visa:
-            required_length = '13, 16 or 19'
-            valid = len(card_number) in {13, 16, 19}
-        elif brand == PaymentCardBrand.amex:
-            required_length = 15
-            valid = len(card_number) == required_length
-        else:
-            valid = True
-
-        if not valid:
-            raise PydanticCustomError(
-                'payment_card_number_brand',
-                'Length for a {brand} card must be {required_length}',
-                {'brand': brand, 'required_length': required_length},
-            )
-        return brand
+        pass
 
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ BYTE SIZE TYPE ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -2148,25 +2041,7 @@ class ByteSize(int):
         Returns:
             A human readable string representation of the byte size.
         """
-        if decimal:
-            divisor = 1000
-            units = 'B', 'KB', 'MB', 'GB', 'TB', 'PB'
-            final_unit = 'EB'
-        else:
-            divisor = 1024
-            units = 'B', 'KiB', 'MiB', 'GiB', 'TiB', 'PiB'
-            final_unit = 'EiB'
-
-        num = float(self)
-        for unit in units:
-            if abs(num) < divisor:
-                if unit == 'B':
-                    return f'{num:0.0f}{separator}{unit}'
-                else:
-                    return f'{num:0.1f}{separator}{unit}'
-            num /= divisor
-
-        return f'{num:0.1f}{separator}{final_unit}'
+        pass
 
     def to(self, unit: str) -> float:
         """Converts a byte size to another unit, including both byte and bit units.
@@ -2180,20 +2055,14 @@ class ByteSize(int):
         Returns:
             The byte size in the new unit.
         """
-        try:
-            unit_div = self.byte_sizes[unit.lower()]
-        except KeyError:
-            raise PydanticCustomError('byte_size_unit', 'Could not interpret byte unit: {unit}', {'unit': unit})
-
-        return self / unit_div
+        pass
 
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ DATE TYPES ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 def _check_annotated_type(annotated_type: str, expected_type: str, annotation: str) -> None:
-    if annotated_type != expected_type:
-        raise PydanticUserError(f"'{annotation}' cannot annotate '{annotated_type}'.", code='invalid-annotated-type')
+    pass
 
 
 if TYPE_CHECKING:
@@ -2431,7 +2300,7 @@ class Base64Encoder(EncoderProtocol):
         Returns:
             The JSON format for the encoded data.
         """
-        return 'base64'
+        pass
 
 
 class Base64UrlEncoder(EncoderProtocol):
@@ -2471,7 +2340,7 @@ class Base64UrlEncoder(EncoderProtocol):
         Returns:
             The JSON format for the encoded data.
         """
-        return 'base64url'
+        pass
 
 
 @_dataclasses.dataclass(**_internal_dataclass.slots_true)
@@ -2655,7 +2524,7 @@ class EncodedStr:
         Returns:
             The decoded data.
         """
-        return self.encoder.decode(data.encode()).decode()
+        pass
 
     def encode_str(self, value: str) -> str:
         """Encode the data using the specified encoder.
@@ -2666,7 +2535,7 @@ class EncodedStr:
         Returns:
             The encoded data.
         """
-        return self.encoder.encode(value.encode()).decode()  # noqa: UP008
+        pass
 
     def __hash__(self) -> int:
         return hash(self.encoder)
@@ -3155,24 +3024,7 @@ _JSON_TYPES = {int, float, str, bool, list, dict, type(None)}
 
 
 def _get_type_name(x: Any) -> str:
-    type_ = type(x)
-    if type_ in _JSON_TYPES:
-        return type_.__name__
-
-    # Handle proper subclasses; note we don't need to handle None or bool here
-    if isinstance(x, int):
-        return 'int'
-    if isinstance(x, float):
-        return 'float'
-    if isinstance(x, str):
-        return 'str'
-    if isinstance(x, list):
-        return 'list'
-    if isinstance(x, dict):
-        return 'dict'
-
-    # Fail by returning the type's actual name
-    return getattr(type_, '__name__', '<no type name>')
+    pass
 
 
 class _AllowAnyJson:

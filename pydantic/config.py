@@ -1280,15 +1280,7 @@ def with_config(config: ConfigDict | None = None, /, **kwargs: Any) -> Callable[
         # Ideally, we would check for `class_` to either be a `TypedDict` or a stdlib dataclass.
         # However, the `@with_config` decorator can be applied *after* `@dataclass`. To avoid
         # common mistakes, we at least check for `class_` to not be a Pydantic model.
-        from ._internal._utils import is_model_class
-
-        if is_model_class(class_):
-            raise PydanticUserError(
-                f'Cannot use `with_config` on {class_.__name__} as it is a Pydantic model',
-                code='with-config-on-model',
-            )
-        class_.__pydantic_config__ = final_config
-        return class_
+        pass
 
     return inner
 

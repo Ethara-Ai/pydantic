@@ -10,19 +10,7 @@ session = requests.Session()
 
 
 def update_lib(lib, *, retry=0):
-    repo = lib['repo']
-    url = f'https://api.github.com/repos/{repo}'
-    resp = session.get(url)
-    if resp.status_code == 403 and retry < 3:
-        print(f'retrying {repo} {retry}')
-        sleep(5)
-        return update_lib(lib, retry=retry + 1)
-
-    resp.raise_for_status()
-    data = resp.json()
-    stars = data['watchers_count']
-    print(f'{repo}: {stars}')
-    lib['stars'] = stars
+    pass
 
 
 with (THIS_DIR / 'using.toml').open('rb') as f:

@@ -466,7 +466,7 @@ def model_ser_schema(cls: type[Any], schema: CoreSchema) -> ModelSerSchema:
         cls: The expected class type, used to generate warnings if the wrong type is passed
         schema: Internal schema to use to serialize the model dict
     """
-    return ModelSerSchema(type='model', cls=cls, schema=schema)
+    pass
 
 
 SerSchema = Union[
@@ -496,8 +496,7 @@ def invalid_schema(ref: str | None = None, metadata: dict[str, Any] | None = Non
         ref: optional unique identifier of the schema, used to reference the schema in other places
         metadata: Any other information you want to include with the schema, not used by pydantic-core
     """
-
-    return _dict_not_none(type='invalid', ref=ref, metadata=metadata)
+    pass
 
 
 class ComputedField(TypedDict, total=False):
@@ -1539,7 +1538,7 @@ class IncExSeqSerSchema(TypedDict, total=False):
 
 
 def filter_seq_schema(*, include: set[int] | None = None, exclude: set[int] | None = None) -> IncExSeqSerSchema:
-    return _dict_not_none(type='include-exclude-sequence', include=include, exclude=exclude)
+    pass
 
 
 IncExSeqOrElseSerSchema = Union[IncExSeqSerSchema, SerSchema]
@@ -1636,19 +1635,7 @@ def tuple_positional_schema(
         metadata: Any other information you want to include with the schema, not used by pydantic-core
         serialization: Custom serialization schema
     """
-    if extras_schema is not None:
-        variadic_item_index = len(items_schema)
-        items_schema = items_schema + [extras_schema]
-    else:
-        variadic_item_index = None
-    return tuple_schema(
-        items_schema=items_schema,
-        variadic_item_index=variadic_item_index,
-        strict=strict,
-        ref=ref,
-        metadata=metadata,
-        serialization=serialization,
-    )
+    pass
 
 
 # @deprecated('tuple_variable_schema is deprecated. Use pydantic_core.core_schema.tuple_schema instead.')
@@ -1684,16 +1671,7 @@ def tuple_variable_schema(
         metadata: Any other information you want to include with the schema, not used by pydantic-core
         serialization: Custom serialization schema
     """
-    return tuple_schema(
-        items_schema=[items_schema or any_schema()],
-        variadic_item_index=0,
-        min_length=min_length,
-        max_length=max_length,
-        strict=strict,
-        ref=ref,
-        metadata=metadata,
-        serialization=serialization,
-    )
+    pass
 
 
 class TupleSchema(TypedDict, total=False):
@@ -1945,7 +1923,7 @@ class IncExDictSerSchema(TypedDict, total=False):
 
 
 def filter_dict_schema(*, include: IncExDict | None = None, exclude: IncExDict | None = None) -> IncExDictSerSchema:
-    return _dict_not_none(type='include-exclude-dict', include=include, exclude=exclude)
+    pass
 
 
 IncExDictOrElseSerSchema = Union[IncExDictSerSchema, SerSchema]
@@ -3716,16 +3694,7 @@ def arguments_v3_schema(
         metadata: Any other information you want to include with the schema, not used by pydantic-core.
         serialization: Custom serialization schema.
     """
-    return _dict_not_none(
-        type='arguments-v3',
-        arguments_schema=arguments,
-        validate_by_name=validate_by_name,
-        validate_by_alias=validate_by_alias,
-        extra_behavior=extra_behavior,
-        ref=ref,
-        metadata=metadata,
-        serialization=serialization,
-    )
+    pass
 
 
 class CallSchema(TypedDict, total=False):
@@ -4366,76 +4335,44 @@ def iter_union_choices(union_schema: UnionSchema) -> Generator[CoreSchema]:
 
 @deprecated('`field_before_validator_function` is deprecated, use `with_info_before_validator_function` instead.')
 def field_before_validator_function(function: WithInfoValidatorFunction, field_name: str, schema: CoreSchema, **kwargs):
-    warnings.warn(
-        '`field_before_validator_function` is deprecated, use `with_info_before_validator_function` instead.',
-        DeprecationWarning,
-    )
-    return with_info_before_validator_function(function, schema, field_name=field_name, **kwargs)
+    pass
 
 
 @deprecated('`general_before_validator_function` is deprecated, use `with_info_before_validator_function` instead.')
 def general_before_validator_function(*args, **kwargs):
-    warnings.warn(
-        '`general_before_validator_function` is deprecated, use `with_info_before_validator_function` instead.',
-        DeprecationWarning,
-    )
-    return with_info_before_validator_function(*args, **kwargs)
+    pass
 
 
 @deprecated('`field_after_validator_function` is deprecated, use `with_info_after_validator_function` instead.')
 def field_after_validator_function(function: WithInfoValidatorFunction, field_name: str, schema: CoreSchema, **kwargs):
-    warnings.warn(
-        '`field_after_validator_function` is deprecated, use `with_info_after_validator_function` instead.',
-        DeprecationWarning,
-    )
-    return with_info_after_validator_function(function, schema, field_name=field_name, **kwargs)
+    pass
 
 
 @deprecated('`general_after_validator_function` is deprecated, use `with_info_after_validator_function` instead.')
 def general_after_validator_function(*args, **kwargs):
-    warnings.warn(
-        '`general_after_validator_function` is deprecated, use `with_info_after_validator_function` instead.',
-        DeprecationWarning,
-    )
-    return with_info_after_validator_function(*args, **kwargs)
+    pass
 
 
 @deprecated('`field_wrap_validator_function` is deprecated, use `with_info_wrap_validator_function` instead.')
 def field_wrap_validator_function(
     function: WithInfoWrapValidatorFunction, field_name: str, schema: CoreSchema, **kwargs
 ):
-    warnings.warn(
-        '`field_wrap_validator_function` is deprecated, use `with_info_wrap_validator_function` instead.',
-        DeprecationWarning,
-    )
-    return with_info_wrap_validator_function(function, schema, field_name=field_name, **kwargs)
+    pass
 
 
 @deprecated('`general_wrap_validator_function` is deprecated, use `with_info_wrap_validator_function` instead.')
 def general_wrap_validator_function(*args, **kwargs):
-    warnings.warn(
-        '`general_wrap_validator_function` is deprecated, use `with_info_wrap_validator_function` instead.',
-        DeprecationWarning,
-    )
-    return with_info_wrap_validator_function(*args, **kwargs)
+    pass
 
 
 @deprecated('`field_plain_validator_function` is deprecated, use `with_info_plain_validator_function` instead.')
 def field_plain_validator_function(function: WithInfoValidatorFunction, field_name: str, **kwargs):
-    warnings.warn(
-        '`field_plain_validator_function` is deprecated, use `with_info_plain_validator_function` instead.',
-        DeprecationWarning,
-    )
-    return with_info_plain_validator_function(function, field_name=field_name, **kwargs)
+    pass
 
 
 @deprecated('`general_plain_validator_function` is deprecated, use `with_info_plain_validator_function` instead.')
 def general_plain_validator_function(*args, **kwargs):
-    warnings.warn(
-        '`general_plain_validator_function` is deprecated, use `with_info_plain_validator_function` instead.',
-        DeprecationWarning,
-    )
-    return with_info_plain_validator_function(*args, **kwargs)
+    pass
 
 
 _deprecated_import_lookup = {

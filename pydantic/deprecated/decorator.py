@@ -53,7 +53,7 @@ def validate_arguments(func: Optional['AnyCallableT'] = None, *, config: 'Config
 
         @wraps(_func)
         def wrapper_function(*args: Any, **kwargs: Any) -> Any:
-            return vd.call(*args, **kwargs)
+            pass
 
         wrapper_function.vd = vd  # type: ignore
         wrapper_function.validate = vd.init_model_instance  # type: ignore
@@ -244,40 +244,22 @@ class ValidatedFunction:
             @field_validator(self.v_args_name, check_fields=False)
             @classmethod
             def check_args(cls, v: Optional[list[Any]]) -> Optional[list[Any]]:
-                if takes_args or v is None:
-                    return v
-
-                raise TypeError(f'{pos_args} positional arguments expected but {pos_args + len(v)} given')
+                pass
 
             @field_validator(self.v_kwargs_name, check_fields=False)
             @classmethod
             def check_kwargs(cls, v: Optional[dict[str, Any]]) -> Optional[dict[str, Any]]:
-                if takes_kwargs or v is None:
-                    return v
-
-                plural = '' if len(v) == 1 else 's'
-                keys = ', '.join(map(repr, v.keys()))
-                raise TypeError(f'unexpected keyword argument{plural}: {keys}')
+                pass
 
             @field_validator(V_POSITIONAL_ONLY_NAME, check_fields=False)
             @classmethod
             def check_positional_only(cls, v: Optional[list[str]]) -> None:
-                if v is None:
-                    return
-
-                plural = '' if len(v) == 1 else 's'
-                keys = ', '.join(map(repr, v))
-                raise TypeError(f'positional-only argument{plural} passed as keyword argument{plural}: {keys}')
+                pass
 
             @field_validator(V_DUPLICATE_KWARGS, check_fields=False)
             @classmethod
             def check_duplicate_kwargs(cls, v: Optional[list[str]]) -> None:
-                if v is None:
-                    return
-
-                plural = '' if len(v) == 1 else 's'
-                keys = ', '.join(map(repr, v))
-                raise TypeError(f'multiple values for argument{plural}: {keys}')
+                pass
 
             model_config = config_wrapper.config_dict
 

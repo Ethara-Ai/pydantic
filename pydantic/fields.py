@@ -582,62 +582,7 @@ class FieldInfo(_repr.Representation):
         Returns:
             FieldInfo: A merged FieldInfo instance.
         """
-        if len(field_infos) == 1:
-            # No merging necessary, but we still need to make a copy and apply the overrides
-            field_info = field_infos[0]._copy()
-            field_info._attributes_set.update(overrides)
-
-            default_override = overrides.pop('default', PydanticUndefined)
-            if default_override is Ellipsis:
-                default_override = PydanticUndefined
-            if default_override is not PydanticUndefined:
-                field_info.default = default_override
-
-            for k, v in overrides.items():
-                setattr(field_info, k, v)
-            return field_info  # type: ignore
-
-        merged_field_info_kwargs: dict[str, Any] = {}
-        metadata = {}
-        for field_info in field_infos:
-            attributes_set = field_info._attributes_set.copy()
-
-            try:
-                json_schema_extra = attributes_set.pop('json_schema_extra')
-                existing_json_schema_extra = merged_field_info_kwargs.get('json_schema_extra')
-
-                if existing_json_schema_extra is None:
-                    merged_field_info_kwargs['json_schema_extra'] = json_schema_extra
-                if isinstance(existing_json_schema_extra, dict):
-                    if isinstance(json_schema_extra, dict):
-                        merged_field_info_kwargs['json_schema_extra'] = {
-                            **existing_json_schema_extra,
-                            **json_schema_extra,
-                        }
-                    if callable(json_schema_extra):
-                        warn(
-                            'Composing `dict` and `callable` type `json_schema_extra` is not supported.'
-                            'The `callable` type is being ignored.'
-                            "If you'd like support for this behavior, please open an issue on pydantic.",
-                            PydanticJsonSchemaWarning,
-                        )
-                elif callable(json_schema_extra):
-                    # if ever there's a case of a callable, we'll just keep the last json schema extra spec
-                    merged_field_info_kwargs['json_schema_extra'] = json_schema_extra
-            except KeyError:
-                pass
-
-            # later FieldInfo instances override everything except json_schema_extra from earlier FieldInfo instances
-            merged_field_info_kwargs.update(attributes_set)
-
-            for x in field_info.metadata:
-                if not isinstance(x, FieldInfo):
-                    metadata[type(x)] = x
-
-        merged_field_info_kwargs.update(overrides)
-        field_info = FieldInfo(**merged_field_info_kwargs)
-        field_info.metadata = list(metadata.values())
-        return field_info
+        pass
 
     @staticmethod
     def _from_dataclass_field(dc_field: DataclassField[Any]) -> FieldInfo:
@@ -678,32 +623,12 @@ class FieldInfo(_repr.Representation):
             A list of metadata objects - a combination of `annotated_types.BaseMetadata` and
                 `PydanticMetadata`.
         """
-        metadata: list[Any] = []
-        general_metadata = {}
-        for key, value in list(kwargs.items()):
-            try:
-                marker = FieldInfo.metadata_lookup[key]
-            except KeyError:
-                continue
-
-            del kwargs[key]
-            if value is not None:
-                if marker is None:
-                    general_metadata[key] = value
-                else:
-                    metadata.append(marker(value))
-        if general_metadata:
-            metadata.append(_fields.pydantic_general_metadata(**general_metadata))
-        return metadata
+        pass
 
     @property
     def deprecation_message(self) -> str | None:
         """The deprecation message to be emitted, or `None` if not set."""
-        if self.deprecated is None:
-            return None
-        if isinstance(self.deprecated, bool):
-            return 'deprecated' if self.deprecated else None
-        return self.deprecated if isinstance(self.deprecated, str) else self.deprecated.message
+        pass
 
     @property
     def default_factory_takes_validated_data(self) -> bool | None:
@@ -711,8 +636,7 @@ class FieldInfo(_repr.Representation):
 
         Returns `None` if no default factory is set.
         """
-        if self.default_factory is not None:
-            return _fields.takes_validated_data_argument(self.default_factory)
+        pass
 
     @overload
     def get_default(
@@ -764,11 +688,7 @@ class FieldInfo(_repr.Representation):
         Returns:
             The rebuilt annotation.
         """
-        if not self.metadata:
-            return self.annotation
-        else:
-            # Annotated arguments must be a tuple
-            return Annotated[(self.annotation, *self.metadata)]  # type: ignore
+        pass
 
     def apply_typevars_map(
         self,
@@ -1453,8 +1373,7 @@ class ModelPrivateAttr(_repr.Representation):
 
         Returns `None` if no default factory is set.
         """
-        if self.default_factory is not None:
-            return _fields.takes_validated_data_argument(self.default_factory)
+        pass
 
     @overload
     def get_default(
@@ -1605,11 +1524,7 @@ class ComputedFieldInfo:
     @property
     def deprecation_message(self) -> str | None:
         """The deprecation message to be emitted, or `None` if not set."""
-        if self.deprecated is None:
-            return None
-        if isinstance(self.deprecated, bool):
-            return 'deprecated' if self.deprecated else None
-        return self.deprecated if isinstance(self.deprecated, str) else self.deprecated.message
+        pass
 
     def _update_from_config(self, config_wrapper: ConfigWrapper, name: str) -> None:
         """Update the instance from the configuration set on the class this computed field belongs to."""

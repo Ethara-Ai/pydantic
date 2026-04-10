@@ -249,7 +249,7 @@ class ConfigWrapperStack:
 
     @property
     def tail(self) -> ConfigWrapper:
-        return self._config_wrapper_stack[-1]
+        pass
 
     @contextmanager
     def push(self, config_wrapper: ConfigWrapper | ConfigDict | None):

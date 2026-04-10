@@ -102,7 +102,7 @@ def plugin(version: str) -> 'TypingType[Plugin]':
     We might want to use this to print a warning if the mypy version being used is
     newer, or especially older, than we expect (or need).
     """
-    return PydanticPlugin
+    pass
 
 
 class PydanticPlugin(Plugin):
@@ -112,48 +112,33 @@ class PydanticPlugin(Plugin):
         super().__init__(options)
 
     def get_base_class_hook(self, fullname: str) -> 'Optional[Callable[[ClassDefContext], None]]':
-        sym = self.lookup_fully_qualified(fullname)
-        if sym and isinstance(sym.node, TypeInfo):  # pragma: no branch
-            # No branching may occur if the mypy cache has not been cleared
-            if any(get_fullname(base) == BASEMODEL_FULLNAME for base in sym.node.mro):
-                return self._pydantic_model_class_maker_callback
-        return None
+        pass
 
     def get_metaclass_hook(self, fullname: str) -> Optional[Callable[[ClassDefContext], None]]:
-        if fullname == MODEL_METACLASS_FULLNAME:
-            return self._pydantic_model_metaclass_marker_callback
-        return None
+        pass
 
     def get_function_hook(self, fullname: str) -> 'Optional[Callable[[FunctionContext], Type]]':
-        sym = self.lookup_fully_qualified(fullname)
-        if sym and sym.fullname == FIELD_FULLNAME:
-            return self._pydantic_field_callback
-        return None
+        pass
 
     def get_method_hook(self, fullname: str) -> Optional[Callable[[MethodContext], Type]]:
-        if fullname.endswith('.from_orm'):
-            return from_orm_callback
-        return None
+        pass
 
     def get_class_decorator_hook(self, fullname: str) -> Optional[Callable[[ClassDefContext], None]]:
         """Mark pydantic.dataclasses as dataclass.
 
         Mypy version 1.1.1 added support for `@dataclass_transform` decorator.
         """
-        if fullname == DATACLASS_FULLNAME and MYPY_VERSION_TUPLE < (1, 1):
-            return dataclasses.dataclass_class_maker_callback  # type: ignore[return-value]
-        return None
+        pass
 
     def report_config_data(self, ctx: ReportConfigContext) -> Dict[str, Any]:
         """Return all plugin config data.
 
         Used by mypy to determine if cache needs to be discarded.
         """
-        return self._plugin_data
+        pass
 
     def _pydantic_model_class_maker_callback(self, ctx: ClassDefContext) -> None:
-        transformer = PydanticModelTransformer(ctx, self.plugin_config)
-        transformer.transform()
+        pass
 
     def _pydantic_model_metaclass_marker_callback(self, ctx: ClassDefContext) -> None:
         """Reset dataclass_transform_spec attribute of ModelMetaclass.
@@ -161,12 +146,7 @@ class PydanticPlugin(Plugin):
         Let the plugin handle it. This behavior can be disabled
         if 'debug_dataclass_transform' is set to True', for testing purposes.
         """
-        if self.plugin_config.debug_dataclass_transform:
-            return
-        info_metaclass = ctx.cls.info.declared_metaclass
-        assert info_metaclass, "callback not passed from 'get_metaclass_hook'"
-        if getattr(info_metaclass.type, 'dataclass_transform_spec', None):
-            info_metaclass.type.dataclass_transform_spec = None  # type: ignore[attr-defined]
+        pass
 
     def _pydantic_field_callback(self, ctx: FunctionContext) -> 'Type':
         """
@@ -177,49 +157,7 @@ class PydanticPlugin(Plugin):
         * Output an error if both are specified.
         * Retrieve the type of the argument which is specified, and use it as return type for the function.
         """
-        default_any_type = ctx.default_return_type
-
-        assert ctx.callee_arg_names[0] == 'default', '"default" is no longer first argument in Field()'
-        assert ctx.callee_arg_names[1] == 'default_factory', '"default_factory" is no longer second argument in Field()'
-        default_args = ctx.args[0]
-        default_factory_args = ctx.args[1]
-
-        if default_args and default_factory_args:
-            error_default_and_default_factory_specified(ctx.api, ctx.context)
-            return default_any_type
-
-        if default_args:
-            default_type = ctx.arg_types[0][0]
-            default_arg = default_args[0]
-
-            # Fallback to default Any type if the field is required
-            if not isinstance(default_arg, EllipsisExpr):
-                return default_type
-
-        elif default_factory_args:
-            default_factory_type = ctx.arg_types[1][0]
-
-            # Functions which use `ParamSpec` can be overloaded, exposing the callable's types as a parameter
-            # Pydantic calls the default factory without any argument, so we retrieve the first item
-            if isinstance(default_factory_type, Overloaded):
-                if MYPY_VERSION_TUPLE > (0, 910):
-                    default_factory_type = default_factory_type.items[0]
-                else:
-                    # Mypy0.910 exposes the items of overloaded types in a function
-                    default_factory_type = default_factory_type.items()[0]  # type: ignore[operator]
-
-            if isinstance(default_factory_type, CallableType):
-                ret_type = get_proper_type(default_factory_type.ret_type)
-                if (
-                    isinstance(ret_type, Instance)
-                    and ret_type.args
-                    and all(isinstance(arg, TypeVarType) for arg in ret_type.args)
-                ):
-                    # Looks like the default factory is a type like `list` or `dict`, replace all args with `Any`
-                    ret_type = ret_type.copy_modified(args=[default_any_type] * len(ret_type.args))
-                return ret_type
-
-        return default_any_type
+        pass
 
 
 class PydanticPluginConfig:
@@ -256,32 +194,14 @@ class PydanticPluginConfig:
                 setattr(self, key, setting)
 
     def to_data(self) -> Dict[str, Any]:
-        return {key: getattr(self, key) for key in self.__slots__}
+        pass
 
 
 def from_orm_callback(ctx: MethodContext) -> Type:
     """
     Raise an error if orm_mode is not enabled
     """
-    model_type: Instance
-    ctx_type = ctx.type
-    if isinstance(ctx_type, TypeType):
-        ctx_type = ctx_type.item
-    if isinstance(ctx_type, CallableType) and isinstance(ctx_type.ret_type, Instance):
-        model_type = ctx_type.ret_type  # called on the class
-    elif isinstance(ctx_type, Instance):
-        model_type = ctx_type  # called on an instance (unusual, but still valid)
-    else:  # pragma: no cover
-        detail = f'ctx.type: {ctx_type} (of type {ctx_type.__class__.__name__})'
-        error_unexpected_behavior(detail, ctx.api, ctx.context)
-        return ctx.default_return_type
-    pydantic_metadata = model_type.type.metadata.get(METADATA_KEY)
-    if pydantic_metadata is None:
-        return ctx.default_return_type
-    orm_mode = pydantic_metadata.get('config', {}).get('orm_mode')
-    if orm_mode is not True:
-        error_from_orm(get_name(model_type.type), ctx.api, ctx.context)
-    return ctx.default_return_type
+    pass
 
 
 class PydanticModelTransformer:
@@ -792,7 +712,7 @@ ERROR_FIELD_DEFAULTS = ErrorCode('pydantic-field', 'Invalid Field defaults', 'Py
 
 
 def error_from_orm(model_name: str, api: CheckerPluginInterface, context: Context) -> None:
-    api.fail(f'"{model_name}" does not have orm_mode=True', context, code=ERROR_ORM)
+    pass
 
 
 def error_invalid_config_value(name: str, api: SemanticAnalyzerPluginInterface, context: Context) -> None:
@@ -818,7 +738,7 @@ def error_untyped_fields(api: SemanticAnalyzerPluginInterface, context: Context)
 
 
 def error_default_and_default_factory_specified(api: CheckerPluginInterface, context: Context) -> None:
-    api.fail('Field default and default_factory cannot be specified together', context, code=ERROR_FIELD_DEFAULTS)
+    pass
 
 
 def add_method(
@@ -925,25 +845,4 @@ def get_name(x: Union[FuncBase, SymbolNode]) -> str:
 
 
 def parse_toml(config_file: str) -> Optional[Dict[str, Any]]:
-    if not config_file.endswith('.toml'):
-        return None
-
-    read_mode = 'rb'
-    if sys.version_info >= (3, 11):
-        import tomllib as toml_
-    else:
-        try:
-            import tomli as toml_
-        except ImportError:
-            # older versions of mypy have toml as a dependency, not tomli
-            read_mode = 'r'
-            try:
-                import toml as toml_  # type: ignore[no-redef]
-            except ImportError:  # pragma: no cover
-                import warnings
-
-                warnings.warn('No TOML parser installed, cannot read configuration from `pyproject.toml`.')
-                return None
-
-    with open(config_file, read_mode) as rf:
-        return toml_.load(rf)  # type: ignore[arg-type]
+    pass

@@ -561,15 +561,7 @@ def stricturl(
     allowed_schemes: Optional[Collection[str]] = None,
 ) -> Type[AnyUrl]:
     # use kwargs then define conf in a dict to aid with IDE type hinting
-    namespace = dict(
-        strip_whitespace=strip_whitespace,
-        min_length=min_length,
-        max_length=max_length,
-        tld_required=tld_required,
-        host_required=host_required,
-        allowed_schemes=allowed_schemes,
-    )
-    return type('UrlValue', (AnyUrl,), namespace)
+    pass
 
 
 def import_email_validator() -> None:

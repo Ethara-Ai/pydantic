@@ -142,17 +142,7 @@ def truncate(v: Union[str], *, max_len: int = 80) -> str:
     """
     Truncate a value and add a unicode ellipsis (three dots) to the end if it was too long
     """
-    warnings.warn('`truncate` is no-longer used by pydantic and is deprecated', DeprecationWarning)
-    if isinstance(v, str) and len(v) > (max_len - 2):
-        # -3 so quote + string + … + quote has correct length
-        return (v[: (max_len - 3)] + '…').__repr__()
-    try:
-        v = v.__repr__()
-    except TypeError:
-        v = v.__class__.__repr__(v)  # in case v is a type
-    if len(v) > max_len:
-        v = v[: max_len - 1] + '…'
-    return v
+    pass
 
 
 def sequence_like(v: Any) -> bool:
@@ -212,25 +202,18 @@ KeyType = TypeVar('KeyType')
 
 
 def deep_update(mapping: Dict[KeyType, Any], *updating_mappings: Dict[KeyType, Any]) -> Dict[KeyType, Any]:
-    updated_mapping = mapping.copy()
-    for updating_mapping in updating_mappings:
-        for k, v in updating_mapping.items():
-            if k in updated_mapping and isinstance(updated_mapping[k], dict) and isinstance(v, dict):
-                updated_mapping[k] = deep_update(updated_mapping[k], v)
-            else:
-                updated_mapping[k] = v
-    return updated_mapping
+    pass
 
 
 def update_not_none(mapping: Dict[Any, Any], **update: Any) -> None:
-    mapping.update({k: v for k, v in update.items() if v is not None})
+    pass
 
 
 def almost_equal_floats(value_1: float, value_2: float, *, delta: float = 1e-8) -> bool:
     """
     Return True if two floats are almost equal
     """
-    return abs(value_1 - value_2) <= delta
+    pass
 
 
 def generate_model_signature(
@@ -316,10 +299,7 @@ def to_camel(string: str) -> str:
 
 
 def to_lower_camel(string: str) -> str:
-    if len(string) >= 1:
-        pascal_string = to_camel(string)
-        return pascal_string[0].lower() + pascal_string[1:]
-    return string.lower()
+    pass
 
 
 T = TypeVar('T')
@@ -530,34 +510,7 @@ class ValueItems(Representation):
         >>> self._normalize_indexes({'__all__': True}, 4)
         {0: True, 1: True, 2: True, 3: True}
         """
-
-        normalized_items: 'DictIntStrAny' = {}
-        all_items = None
-        for i, v in items.items():
-            if not (isinstance(v, Mapping) or isinstance(v, AbstractSet) or self.is_true(v)):
-                raise TypeError(f'Unexpected type of exclude value for index "{i}" {v.__class__}')
-            if i == '__all__':
-                all_items = self._coerce_value(v)
-                continue
-            if not isinstance(i, int):
-                raise TypeError(
-                    'Excluding fields from a sequence of sub-models or dicts must be performed index-wise: '
-                    'expected integer keys or keyword "__all__"'
-                )
-            normalized_i = v_length + i if i < 0 else i
-            normalized_items[normalized_i] = self.merge(v, normalized_items.get(normalized_i))
-
-        if not all_items:
-            return normalized_items
-        if self.is_true(all_items):
-            for i in range(v_length):
-                normalized_items.setdefault(i, ...)
-            return normalized_items
-        for i in range(v_length):
-            normalized_item = normalized_items.setdefault(i, {})
-            if not self.is_true(normalized_item):
-                normalized_items[i] = self.merge(all_items, normalized_item)
-        return normalized_items
+        pass
 
     @classmethod
     def merge(cls, base: Any, override: Any, intersect: bool = False) -> Any:
@@ -662,12 +615,7 @@ def path_type(p: 'Path') -> str:
     """
     Find out what sort of thing a path is.
     """
-    assert p.exists(), 'path does not exist'
-    for method, name in path_types.items():
-        if getattr(p, method)():
-            return name
-
-    return 'unknown'
+    pass
 
 
 Obj = TypeVar('Obj')

@@ -134,29 +134,7 @@ def schema(
     :return: dict with the JSON Schema with a ``definitions`` top-level key including the schema definitions for
       the models and sub-models passed in ``models``.
     """
-    clean_models = [get_model(model) for model in models]
-    flat_models = get_flat_models_from_models(clean_models)
-    model_name_map = get_model_name_map(flat_models)
-    definitions = {}
-    output_schema: Dict[str, Any] = {}
-    if title:
-        output_schema['title'] = title
-    if description:
-        output_schema['description'] = description
-    for model in clean_models:
-        m_schema, m_definitions, m_nested_models = model_process_schema(
-            model,
-            by_alias=by_alias,
-            model_name_map=model_name_map,
-            ref_prefix=ref_prefix,
-            ref_template=ref_template,
-        )
-        definitions.update(m_definitions)
-        model_name = model_name_map[model]
-        definitions[model_name] = m_schema
-    if definitions:
-        output_schema['definitions'] = definitions
-    return output_schema
+    pass
 
 
 def model_schema(
@@ -419,10 +397,7 @@ def get_flat_models_from_models(models: Sequence[Type['BaseModel']]) -> TypeMode
     a list of two models, ``Foo`` and ``Bar``, both subclasses of Pydantic ``BaseModel`` as models, and ``Bar`` has
     a field of type ``Baz`` (also subclass of ``BaseModel``), the return value will be ``set([Foo, Bar, Baz])``.
     """
-    flat_models: TypeModelSet = set()
-    for model in models:
-        flat_models |= get_flat_models_from_model(model)
-    return flat_models
+    pass
 
 
 def get_long_model_name(model: TypeModelOrEnum) -> str:

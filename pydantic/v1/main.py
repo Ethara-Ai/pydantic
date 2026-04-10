@@ -102,7 +102,7 @@ def validate_custom_root_type(fields: Dict[str, ModelField]) -> None:
 
 def generate_hash_function(frozen: bool) -> Optional[Callable[[Any], int]]:
     def hash_function(self_: Any) -> int:
-        return hash(self_.__class__) + hash(tuple(self_.__dict__.values()))
+        pass
 
     return hash_function if frozen else None
 
@@ -462,24 +462,7 @@ class BaseModel(Representation, metaclass=ModelMetaclass):
         Generate a dictionary representation of the model, optionally specifying which fields to include or exclude.
 
         """
-        if skip_defaults is not None:
-            warnings.warn(
-                f'{self.__class__.__name__}.dict(): "skip_defaults" is deprecated and replaced by "exclude_unset"',
-                DeprecationWarning,
-            )
-            exclude_unset = skip_defaults
-
-        return dict(
-            self._iter(
-                to_dict=True,
-                by_alias=by_alias,
-                include=include,
-                exclude=exclude,
-                exclude_unset=exclude_unset,
-                exclude_defaults=exclude_defaults,
-                exclude_none=exclude_none,
-            )
-        )
+        pass
 
     def json(
         self,
@@ -558,18 +541,7 @@ class BaseModel(Representation, metaclass=ModelMetaclass):
         proto: Protocol = None,
         allow_pickle: bool = False,
     ) -> 'Model':
-        try:
-            obj = load_str_bytes(
-                b,
-                proto=proto,
-                content_type=content_type,
-                encoding=encoding,
-                allow_pickle=allow_pickle,
-                json_loads=cls.__config__.json_loads,
-            )
-        except (ValueError, TypeError, UnicodeDecodeError) as e:
-            raise ValidationError([ErrorWrapper(e, loc=ROOT_KEY)], cls)
-        return cls.parse_obj(obj)
+        pass
 
     @classmethod
     def parse_file(
@@ -581,15 +553,7 @@ class BaseModel(Representation, metaclass=ModelMetaclass):
         proto: Protocol = None,
         allow_pickle: bool = False,
     ) -> 'Model':
-        obj = load_file(
-            path,
-            proto=proto,
-            content_type=content_type,
-            encoding=encoding,
-            allow_pickle=allow_pickle,
-            json_loads=cls.__config__.json_loads,
-        )
-        return cls.parse_obj(obj)
+        pass
 
     @classmethod
     def from_orm(cls: Type['Model'], obj: Any) -> 'Model':
@@ -612,22 +576,7 @@ class BaseModel(Representation, metaclass=ModelMetaclass):
         Default values are respected, but no other validation is performed.
         Behaves as if `Config.extra = 'allow'` was set since it adds all passed values
         """
-        m = cls.__new__(cls)
-        fields_values: Dict[str, Any] = {}
-        for name, field in cls.__fields__.items():
-            if field.alt_alias and field.alias in values:
-                fields_values[name] = values[field.alias]
-            elif name in values:
-                fields_values[name] = values[name]
-            elif not field.required:
-                fields_values[name] = field.get_default()
-        fields_values.update(values)
-        object_setattr(m, '__dict__', fields_values)
-        if _fields_set is None:
-            _fields_set = set(values.keys())
-        object_setattr(m, '__fields_set__', _fields_set)
-        m._init_private_attributes()
-        return m
+        pass
 
     def _copy_and_set_values(self: 'Model', values: 'DictStrAny', fields_set: 'SetStr', *, deep: bool) -> 'Model':
         if deep:
@@ -681,22 +630,13 @@ class BaseModel(Representation, metaclass=ModelMetaclass):
 
     @classmethod
     def schema(cls, by_alias: bool = True, ref_template: str = default_ref_template) -> 'DictStrAny':
-        cached = cls.__schema_cache__.get((by_alias, ref_template))
-        if cached is not None:
-            return cached
-        s = model_schema(cls, by_alias=by_alias, ref_template=ref_template)
-        cls.__schema_cache__[(by_alias, ref_template)] = s
-        return s
+        pass
 
     @classmethod
     def schema_json(
         cls, *, by_alias: bool = True, ref_template: str = default_ref_template, **dumps_kwargs: Any
     ) -> str:
-        from pydantic.v1.json import pydantic_encoder
-
-        return cls.__config__.json_dumps(
-            cls.schema(by_alias=by_alias, ref_template=ref_template), default=pydantic_encoder, **dumps_kwargs
-        )
+        pass
 
     @classmethod
     def __get_validators__(cls) -> 'CallableGenerator':
@@ -834,7 +774,7 @@ class BaseModel(Representation, metaclass=ModelMetaclass):
         """
         Try to update ForwardRefs on fields based on this Model, globalns and localns.
         """
-        update_model_forward_refs(cls, cls.__fields__.values(), cls.__config__.json_encoders, localns)
+        pass
 
     def __iter__(self) -> 'TupleGenerator':
         """

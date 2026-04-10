@@ -80,20 +80,15 @@ class ValidationError(Representation, ValueError):
 
 
 def display_errors(errors: List['ErrorDict']) -> str:
-    return '\n'.join(f'{_display_error_loc(e)}\n  {e["msg"]} ({_display_error_type_and_ctx(e)})' for e in errors)
+    pass
 
 
 def _display_error_loc(error: 'ErrorDict') -> str:
-    return ' -> '.join(str(e) for e in error['loc'])
+    pass
 
 
 def _display_error_type_and_ctx(error: 'ErrorDict') -> str:
-    t = 'type=' + error['type']
-    ctx = error.get('ctx')
-    if ctx:
-        return t + ''.join(f'; {k}={v}' for k, v in ctx.items())
-    else:
-        return t
+    pass
 
 
 def flatten_errors(

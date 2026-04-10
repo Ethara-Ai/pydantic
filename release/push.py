@@ -86,30 +86,7 @@ def create_version_tag(rl_version: str):
 
 def create_github_release(new_version: str, notes: str):
     """Create a new release on GitHub."""
-    url = f'https://api.github.com/repos/{REPO}/releases'
-
-    data = {
-        'tag_name': f'v{new_version}',
-        'name': f'v{new_version}',
-        'body': notes,
-        'draft': True,
-    }
-
-    response = requests.post(
-        url,
-        headers={
-            'Authorization': f'Bearer {GITHUB_TOKEN}',
-            'Accept': 'application/vnd.github+json',
-        },
-        json=data,
-        timeout=10,
-    )
-    try:
-        response.raise_for_status()
-    except requests.exceptions.HTTPError as e:
-        print(f'HTTP error occurred: {e}')
-        print(f'Response content: {response.content.decode()}')
-        raise e
+    pass
 
 
 def create_github_release_draft(rl_version: str, rl_release_notes: str):

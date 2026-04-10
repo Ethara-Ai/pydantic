@@ -120,33 +120,7 @@ def create_generic_submodel(
     Returns:
         The created submodel.
     """
-    namespace: dict[str, Any] = {'__module__': origin.__module__}
-    bases = (origin,)
-    meta, ns, kwds = prepare_class(model_name, bases)
-    namespace.update(ns)
-    created_model = meta(
-        model_name,
-        bases,
-        namespace,
-        __pydantic_generic_metadata__={
-            'origin': origin,
-            'args': args,
-            'parameters': params,
-        },
-        __pydantic_reset_parent_namespace__=False,
-        **kwds,
-    )
-
-    model_module, called_globally = _get_caller_frame_info(depth=3)
-    if called_globally:  # create global reference and therefore allow pickling
-        object_by_reference = None
-        reference_name = model_name
-        reference_module_globals = sys.modules[created_model.__module__].__dict__
-        while object_by_reference is not created_model:
-            object_by_reference = reference_module_globals.setdefault(reference_name, created_model)
-            reference_name += '_'
-
-    return created_model
+    pass
 
 
 def _get_caller_frame_info(depth: int = 2) -> tuple[str | None, bool]:
@@ -365,34 +339,7 @@ def map_generic_model_arguments(cls: type[BaseModel], args: tuple[Any, ...]) -> 
     Note:
         This function is analogous to the private `typing._check_generic_specialization` function.
     """
-    parameters = cls.__pydantic_generic_metadata__['parameters']
-    expected_len = len(parameters)
-    typevars_map: dict[TypeVar, Any] = {}
-
-    _missing = object()
-    for parameter, argument in zip_longest(parameters, args, fillvalue=_missing):
-        if parameter is _missing:
-            raise TypeError(f'Too many arguments for {cls}; actual {len(args)}, expected {expected_len}')
-
-        if argument is _missing:
-            param = cast(TypeVar, parameter)
-            try:
-                has_default = param.has_default()  # pyright: ignore[reportAttributeAccessIssue]
-            except AttributeError:
-                # Happens if using `typing.TypeVar` (and not `typing_extensions`) on Python < 3.13.
-                has_default = False
-            if has_default:
-                # The default might refer to other type parameters. For an example, see:
-                # https://typing.python.org/en/latest/spec/generics.html#type-parameters-as-parameters-to-generics
-                typevars_map[param] = replace_types(param.__default__, typevars_map)  # pyright: ignore[reportAttributeAccessIssue]
-            else:
-                expected_len -= sum(hasattr(p, 'has_default') and p.has_default() for p in parameters)  # pyright: ignore[reportAttributeAccessIssue]
-                raise TypeError(f'Too few arguments for {cls}; actual {len(args)}, expected at least {expected_len}')
-        else:
-            param = cast(TypeVar, parameter)
-            typevars_map[param] = argument
-
-    return typevars_map
+    pass
 
 
 _generic_recursion_cache: ContextVar[set[str] | None] = ContextVar('_generic_recursion_cache', default=None)
@@ -409,33 +356,11 @@ def generic_recursion_self_type(
     can be used while building the core schema, and will produce a schema_ref that will be valid in the
     final parent schema.
     """
-    previously_seen_type_refs = _generic_recursion_cache.get()
-    if previously_seen_type_refs is None:
-        previously_seen_type_refs = set()
-        token = _generic_recursion_cache.set(previously_seen_type_refs)
-    else:
-        token = None
-
-    try:
-        type_ref = get_type_ref(origin, args_override=args)
-        if type_ref in previously_seen_type_refs:
-            self_type = PydanticRecursiveRef(type_ref=type_ref)
-            yield self_type
-        else:
-            previously_seen_type_refs.add(type_ref)
-            yield
-            previously_seen_type_refs.remove(type_ref)
-    finally:
-        if token:
-            _generic_recursion_cache.reset(token)
+    pass
 
 
 def recursively_defined_type_refs() -> set[str]:
-    visited = _generic_recursion_cache.get()
-    if not visited:
-        return set()  # not in a generic recursion, so there are no types
-
-    return visited.copy()  # don't allow modifications
+    pass
 
 
 def get_cached_generic_type_early(parent: type[BaseModel], typevar_values: Any) -> type[BaseModel] | None:
@@ -455,17 +380,14 @@ def get_cached_generic_type_early(parent: type[BaseModel], typevar_values: Any) 
     during validation, I think it is worthwhile to ensure that types that are functionally equivalent are actually
     equal.
     """
-    return _GENERIC_TYPES_CACHE.get(_early_cache_key(parent, typevar_values))
+    pass
 
 
 def get_cached_generic_type_late(
     parent: type[BaseModel], typevar_values: Any, origin: type[BaseModel], args: tuple[Any, ...]
 ) -> type[BaseModel] | None:
     """See the docstring of `get_cached_generic_type_early` for more information about the two-stage cache lookup."""
-    cached = _GENERIC_TYPES_CACHE.get(_late_cache_key(origin, args, typevar_values))
-    if cached is not None:
-        set_cached_generic_type(parent, typevar_values, cached, origin, args)
-    return cached
+    pass
 
 
 def set_cached_generic_type(
@@ -478,11 +400,7 @@ def set_cached_generic_type(
     """See the docstring of `get_cached_generic_type_early` for more information about why items are cached with
     two different keys.
     """
-    _GENERIC_TYPES_CACHE[_early_cache_key(parent, typevar_values)] = type_
-    if len(typevar_values) == 1:
-        _GENERIC_TYPES_CACHE[_early_cache_key(parent, typevar_values[0])] = type_
-    if origin and args:
-        _GENERIC_TYPES_CACHE[_late_cache_key(origin, args, typevar_values)] = type_
+    pass
 
 
 def _union_orderings_key(typevar_values: Any) -> Any:
@@ -498,12 +416,7 @@ def _union_orderings_key(typevar_values: Any) -> Any:
     get the exact-correct order of items in the union, but that would require a change to the `typing` module itself.
     (See https://github.com/python/cpython/issues/86483 for reference.)
     """
-    if isinstance(typevar_values, tuple):
-        return tuple(_union_orderings_key(value) for value in typevar_values)
-    elif typing_objects.is_union(typing_extensions.get_origin(typevar_values)):
-        return get_args(typevar_values)
-    else:
-        return ()
+    pass
 
 
 def _early_cache_key(cls: type[BaseModel], typevar_values: Any) -> GenericTypesCacheKey:
@@ -515,7 +428,7 @@ def _early_cache_key(cls: type[BaseModel], typevar_values: Any) -> GenericTypesC
     lookup fails, and should result in a cache hit _precisely_ when the inputs to __class_getitem__
     would result in the same type.
     """
-    return cls, typevar_values, _union_orderings_key(typevar_values)
+    pass
 
 
 def _late_cache_key(origin: type[BaseModel], args: tuple[Any, ...], typevar_values: Any) -> GenericTypesCacheKey:
@@ -524,7 +437,4 @@ def _late_cache_key(origin: type[BaseModel], args: tuple[Any, ...], typevar_valu
     __class_getitem__ resulted in the same inputs to the generic type creation process, we can still
     return the cached type, and update the cache with the _early_cache_key as well.
     """
-    # The _union_orderings_key is placed at the start here to ensure there cannot be a collision with an
-    # _early_cache_key, as that function will always produce a BaseModel subclass as the first item in the key,
-    # whereas this function will always produce a tuple as the first item in the key.
-    return _union_orderings_key(typevar_values), origin, args
+    pass

@@ -47,15 +47,7 @@ class MockCoreSchema(Mapping[str, Any]):
         return self._get_built().__iter__()
 
     def _get_built(self) -> CoreSchema:
-        if self._built_memo is not None:
-            return self._built_memo
-
-        if self._attempt_rebuild:
-            schema = self._attempt_rebuild()
-            if schema is not None:
-                self._built_memo = schema
-                return schema
-        raise PydanticUserError(self._error_message, code=self._code)
+        pass
 
     def rebuild(self) -> CoreSchema | None:
         self._built_memo = None

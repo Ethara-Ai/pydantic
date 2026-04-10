@@ -405,9 +405,7 @@ def get_graphql_issue_edges(*, settings: Settings, after: str | None = None) -> 
     Returns:
         List of issue edges from the GraphQL response
     """
-    data = get_graphql_response(settings=settings, query=issues_query, after=after)
-    graphql_response = IssuesResponse.model_validate(data)
-    return graphql_response.data.repository.issues.edges
+    pass
 
 
 def get_graphql_question_discussion_edges(
@@ -460,38 +458,7 @@ def get_issues_experts(settings: Settings) -> tuple[Counter, Counter, dict[str, 
             - Counter of commentors from the last month
             - Dictionary mapping usernames to Author objects
     """
-    issue_nodes: list[IssuesNode] = []
-    issue_edges = get_graphql_issue_edges(settings=settings)
-
-    while issue_edges:
-        issue_nodes.extend(edge.node for edge in issue_edges)
-        last_edge = issue_edges[-1]
-        issue_edges = get_graphql_issue_edges(settings=settings, after=last_edge.cursor)
-
-    commentors = Counter()
-    last_month_commentors = Counter()
-    authors: dict[str, Author] = {}
-
-    now = datetime.now(tz=timezone.utc)
-    one_month_ago = now - timedelta(days=30)
-
-    for issue in issue_nodes:
-        issue_author_name = None
-        if issue.author:
-            authors[issue.author.login] = issue.author
-            issue_author_name = issue.author.login
-        issue_commentors = set()
-        for comment in issue.comments.nodes:
-            if comment.author:
-                authors[comment.author.login] = comment.author
-                if comment.author.login != issue_author_name:
-                    issue_commentors.add(comment.author.login)
-        for author_name in issue_commentors:
-            commentors[author_name] += 1
-            if issue.createdAt > one_month_ago:
-                last_month_commentors[author_name] += 1
-
-    return commentors, last_month_commentors, authors
+    pass
 
 
 def get_discussions_experts(settings: Settings) -> tuple[Counter, Counter, dict[str, Author]]:

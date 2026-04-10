@@ -87,7 +87,7 @@ class Color(Representation):
         """
         Original value passed to Color
         """
-        return self._original
+        pass
 
     def as_named(self, *, fallback: bool = False) -> str:
         if self._rgba.alpha is None:
@@ -120,13 +120,7 @@ class Color(Representation):
         """
         Color as an rgb(<r>, <g>, <b>) or rgba(<r>, <g>, <b>, <a>) string.
         """
-        if self._rgba.alpha is None:
-            return f'rgb({float_to_255(self._rgba.r)}, {float_to_255(self._rgba.g)}, {float_to_255(self._rgba.b)})'
-        else:
-            return (
-                f'rgba({float_to_255(self._rgba.r)}, {float_to_255(self._rgba.g)}, {float_to_255(self._rgba.b)}, '
-                f'{round(self._alpha_float(), 2)})'
-            )
+        pass
 
     def as_rgb_tuple(self, *, alpha: Optional[bool] = None) -> ColorTuple:
         """
@@ -154,12 +148,7 @@ class Color(Representation):
         """
         Color as an hsl(<h>, <s>, <l>) or hsl(<h>, <s>, <l>, <a>) string.
         """
-        if self._rgba.alpha is None:
-            h, s, li = self.as_hsl_tuple(alpha=False)  # type: ignore
-            return f'hsl({h * 360:0.0f}, {s:0.0%}, {li:0.0%})'
-        else:
-            h, s, li, a = self.as_hsl_tuple(alpha=True)  # type: ignore
-            return f'hsl({h * 360:0.0f}, {s:0.0%}, {li:0.0%}, {round(a, 2)})'
+        pass
 
     def as_hsl_tuple(self, *, alpha: Optional[bool] = None) -> HslColorTuple:
         """
@@ -173,17 +162,7 @@ class Color(Representation):
           True - always include alpha,
           False - always omit alpha,
         """
-        h, l, s = rgb_to_hls(self._rgba.r, self._rgba.g, self._rgba.b)
-        if alpha is None:
-            if self._rgba.alpha is None:
-                return h, s, l
-            else:
-                return h, s, l, self._alpha_float()
-        if alpha:
-            return h, s, l, self._alpha_float()
-        else:
-            # alpha is False
-            return h, s, l
+        pass
 
     def _alpha_float(self) -> float:
         return 1 if self._rgba.alpha is None else self._rgba.alpha
@@ -209,14 +188,7 @@ def parse_tuple(value: Tuple[Any, ...]) -> RGBA:
     """
     Parse a tuple or list as a color.
     """
-    if len(value) == 3:
-        r, g, b = (parse_color_value(v) for v in value)
-        return RGBA(r, g, b, None)
-    elif len(value) == 4:
-        r, g, b = (parse_color_value(v) for v in value[:3])
-        return RGBA(r, g, b, parse_float_alpha(value[3]))
-    else:
-        raise ColorError(reason='tuples must have length 3 or 4')
+    pass
 
 
 def parse_str(value: str) -> RGBA:
@@ -228,57 +200,11 @@ def parse_str(value: str) -> RGBA:
     * `rgb(<r>, <g>, <b>) `
     * `rgba(<r>, <g>, <b>, <a>)`
     """
-    value_lower = value.lower()
-    try:
-        r, g, b = COLORS_BY_NAME[value_lower]
-    except KeyError:
-        pass
-    else:
-        return ints_to_rgba(r, g, b, None)
-
-    m = re.fullmatch(r_hex_short, value_lower)
-    if m:
-        *rgb, a = m.groups()
-        r, g, b = (int(v * 2, 16) for v in rgb)
-        if a:
-            alpha: Optional[float] = int(a * 2, 16) / 255
-        else:
-            alpha = None
-        return ints_to_rgba(r, g, b, alpha)
-
-    m = re.fullmatch(r_hex_long, value_lower)
-    if m:
-        *rgb, a = m.groups()
-        r, g, b = (int(v, 16) for v in rgb)
-        if a:
-            alpha = int(a, 16) / 255
-        else:
-            alpha = None
-        return ints_to_rgba(r, g, b, alpha)
-
-    m = re.fullmatch(r_rgb, value_lower)
-    if m:
-        return ints_to_rgba(*m.groups(), None)  # type: ignore
-
-    m = re.fullmatch(r_rgba, value_lower)
-    if m:
-        return ints_to_rgba(*m.groups())  # type: ignore
-
-    m = re.fullmatch(r_hsl, value_lower)
-    if m:
-        h, h_units, s, l_ = m.groups()
-        return parse_hsl(h, h_units, s, l_)
-
-    m = re.fullmatch(r_hsla, value_lower)
-    if m:
-        h, h_units, s, l_, a = m.groups()
-        return parse_hsl(h, h_units, s, l_, parse_float_alpha(a))
-
-    raise ColorError(reason='string not recognised as a valid color')
+    pass
 
 
 def ints_to_rgba(r: Union[int, str], g: Union[int, str], b: Union[int, str], alpha: Optional[float]) -> RGBA:
-    return RGBA(parse_color_value(r), parse_color_value(g), parse_color_value(b), parse_float_alpha(alpha))
+    pass
 
 
 def parse_color_value(value: Union[int, str], max_val: int = 255) -> float:
@@ -286,55 +212,21 @@ def parse_color_value(value: Union[int, str], max_val: int = 255) -> float:
     Parse a value checking it's a valid int in the range 0 to max_val and divide by max_val to give a number
     in the range 0 to 1
     """
-    try:
-        color = float(value)
-    except ValueError:
-        raise ColorError(reason='color values must be a valid number')
-    if 0 <= color <= max_val:
-        return color / max_val
-    else:
-        raise ColorError(reason=f'color values must be in the range 0 to {max_val}')
+    pass
 
 
 def parse_float_alpha(value: Union[None, str, float, int]) -> Optional[float]:
     """
     Parse a value checking it's a valid float in the range 0 to 1
     """
-    if value is None:
-        return None
-    try:
-        if isinstance(value, str) and value.endswith('%'):
-            alpha = float(value[:-1]) / 100
-        else:
-            alpha = float(value)
-    except ValueError:
-        raise ColorError(reason='alpha values must be a valid float')
-
-    if almost_equal_floats(alpha, 1):
-        return None
-    elif 0 <= alpha <= 1:
-        return alpha
-    else:
-        raise ColorError(reason='alpha values must be in the range 0 to 1')
+    pass
 
 
 def parse_hsl(h: str, h_units: str, sat: str, light: str, alpha: Optional[float] = None) -> RGBA:
     """
     Parse raw hue, saturation, lightness and alpha values and convert to RGBA.
     """
-    s_value, l_value = parse_color_value(sat, 100), parse_color_value(light, 100)
-
-    h_value = float(h)
-    if h_units in {None, 'deg'}:
-        h_value = h_value % 360 / 360
-    elif h_units == 'rad':
-        h_value = h_value % rads / rads
-    else:
-        # turns
-        h_value = h_value % 1
-
-    r, g, b = hls_to_rgb(h_value, l_value, s_value)
-    return RGBA(r, g, b, alpha)
+    pass
 
 
 def float_to_255(c: float) -> int:

@@ -193,59 +193,12 @@ def dataclass(
     or a wrapper that will trigger validation around a stdlib dataclass
     to avoid modifying it directly
     """
-    the_config = get_config(config)
-
-    def wrap(cls: Type[Any]) -> 'DataclassClassOrWrapper':
-        should_use_proxy = (
-            use_proxy
-            if use_proxy is not None
-            else (
-                is_builtin_dataclass(cls)
-                and (cls.__bases__[0] is object or set(dir(cls)) == set(dir(cls.__bases__[0])))
-            )
-        )
-        if should_use_proxy:
-            dc_cls_doc = ''
-            dc_cls = DataclassProxy(cls)
-            default_validate_on_init = False
-        else:
-            dc_cls_doc = cls.__doc__ or ''  # needs to be done before generating dataclass
-            if sys.version_info >= (3, 10):
-                dc_cls = dataclasses.dataclass(
-                    cls,
-                    init=init,
-                    repr=repr,
-                    eq=eq,
-                    order=order,
-                    unsafe_hash=unsafe_hash,
-                    frozen=frozen,
-                    kw_only=kw_only,
-                )
-            else:
-                dc_cls = dataclasses.dataclass(  # type: ignore
-                    cls, init=init, repr=repr, eq=eq, order=order, unsafe_hash=unsafe_hash, frozen=frozen
-                )
-            default_validate_on_init = True
-
-        should_validate_on_init = default_validate_on_init if validate_on_init is None else validate_on_init
-        _add_pydantic_validation_attributes(cls, the_config, should_validate_on_init, dc_cls_doc)
-        dc_cls.__pydantic_model__.__try_update_forward_refs__(**{cls.__name__: cls})
-        return dc_cls
-
-    if _cls is None:
-        return wrap
-
-    return wrap(_cls)
+    pass
 
 
 @contextmanager
 def set_validation(cls: Type['DataclassT'], value: bool) -> Generator[Type['DataclassT'], None, None]:
-    original_run_validation = cls.__pydantic_run_validation__
-    try:
-        cls.__pydantic_run_validation__ = value
-        yield cls
-    finally:
-        cls.__pydantic_run_validation__ = original_run_validation
+    pass
 
 
 class DataclassProxy:
@@ -285,79 +238,7 @@ def _add_pydantic_validation_attributes(  # noqa: C901 (ignore complexity)
     it won't even exist (code is generated on the fly by `dataclasses`)
     By default, we run validation after `__init__` or `__post_init__` if defined
     """
-    init = dc_cls.__init__
-
-    @wraps(init)
-    def handle_extra_init(self: 'Dataclass', *args: Any, **kwargs: Any) -> None:
-        if config.extra == Extra.ignore:
-            init(self, *args, **{k: v for k, v in kwargs.items() if k in self.__dataclass_fields__})
-
-        elif config.extra == Extra.allow:
-            for k, v in kwargs.items():
-                self.__dict__.setdefault(k, v)
-            init(self, *args, **{k: v for k, v in kwargs.items() if k in self.__dataclass_fields__})
-
-        else:
-            init(self, *args, **kwargs)
-
-    if hasattr(dc_cls, '__post_init__'):
-        try:
-            post_init = dc_cls.__post_init__.__wrapped__  # type: ignore[attr-defined]
-        except AttributeError:
-            post_init = dc_cls.__post_init__
-
-        @wraps(post_init)
-        def new_post_init(self: 'Dataclass', *args: Any, **kwargs: Any) -> None:
-            if config.post_init_call == 'before_validation':
-                post_init(self, *args, **kwargs)
-
-            if self.__class__.__pydantic_run_validation__:
-                self.__pydantic_validate_values__()
-                if hasattr(self, '__post_init_post_parse__'):
-                    self.__post_init_post_parse__(*args, **kwargs)
-
-            if config.post_init_call == 'after_validation':
-                post_init(self, *args, **kwargs)
-
-        setattr(dc_cls, '__init__', handle_extra_init)
-        setattr(dc_cls, '__post_init__', new_post_init)
-
-    else:
-
-        @wraps(init)
-        def new_init(self: 'Dataclass', *args: Any, **kwargs: Any) -> None:
-            handle_extra_init(self, *args, **kwargs)
-
-            if self.__class__.__pydantic_run_validation__:
-                self.__pydantic_validate_values__()
-
-            if hasattr(self, '__post_init_post_parse__'):
-                # We need to find again the initvars. To do that we use `__dataclass_fields__` instead of
-                # public method `dataclasses.fields`
-
-                # get all initvars and their default values
-                initvars_and_values: Dict[str, Any] = {}
-                for i, f in enumerate(self.__class__.__dataclass_fields__.values()):
-                    if f._field_type is dataclasses._FIELD_INITVAR:  # type: ignore[attr-defined]
-                        try:
-                            # set arg value by default
-                            initvars_and_values[f.name] = args[i]
-                        except IndexError:
-                            initvars_and_values[f.name] = kwargs.get(f.name, f.default)
-
-                self.__post_init_post_parse__(**initvars_and_values)
-
-        setattr(dc_cls, '__init__', new_init)
-
-    setattr(dc_cls, '__pydantic_run_validation__', ClassAttribute('__pydantic_run_validation__', validate_on_init))
-    setattr(dc_cls, '__pydantic_initialised__', False)
-    setattr(dc_cls, '__pydantic_model__', create_pydantic_model_from_dataclass(dc_cls, config, dc_cls_doc))
-    setattr(dc_cls, '__pydantic_validate_values__', _dataclass_validate_values)
-    setattr(dc_cls, '__validate__', classmethod(_validate_dataclass))
-    setattr(dc_cls, '__get_validators__', classmethod(_get_validators))
-
-    if dc_cls.__pydantic_model__.__config__.validate_assignment and not dc_cls.__dataclass_params__.frozen:
-        setattr(dc_cls, '__setattr__', _dataclass_validate_assignment_setattr)
+    pass
 
 
 def _get_validators(cls: 'DataclassClassOrWrapper') -> 'CallableGenerator':
@@ -365,16 +246,7 @@ def _get_validators(cls: 'DataclassClassOrWrapper') -> 'CallableGenerator':
 
 
 def _validate_dataclass(cls: Type['DataclassT'], v: Any) -> 'DataclassT':
-    with set_validation(cls, True):
-        if isinstance(v, cls):
-            v.__pydantic_validate_values__()
-            return v
-        elif isinstance(v, (list, tuple)):
-            return cls(*v)
-        elif isinstance(v, dict):
-            return cls(**v)
-        else:
-            raise DataclassTypeError(class_name=cls.__name__)
+    pass
 
 
 def create_pydantic_model_from_dataclass(
@@ -382,84 +254,28 @@ def create_pydantic_model_from_dataclass(
     config: Type[Any] = BaseConfig,
     dc_cls_doc: Optional[str] = None,
 ) -> Type['BaseModel']:
-    field_definitions: Dict[str, Any] = {}
-    for field in dataclasses.fields(dc_cls):
-        default: Any = Undefined
-        default_factory: Optional['NoArgAnyCallable'] = None
-        field_info: FieldInfo
-
-        if field.default is not dataclasses.MISSING:
-            default = field.default
-        elif field.default_factory is not dataclasses.MISSING:
-            default_factory = field.default_factory
-        else:
-            default = Required
-
-        if isinstance(default, FieldInfo):
-            field_info = default
-            dc_cls.__pydantic_has_field_info_default__ = True
-        else:
-            field_info = Field(default=default, default_factory=default_factory, **field.metadata)
-
-        field_definitions[field.name] = (field.type, field_info)
-
-    validators = gather_all_validators(dc_cls)
-    model: Type['BaseModel'] = create_model(
-        dc_cls.__name__,
-        __config__=config,
-        __module__=dc_cls.__module__,
-        __validators__=validators,
-        __cls_kwargs__={'__resolve_forward_refs__': False},
-        **field_definitions,
-    )
-    model.__doc__ = dc_cls_doc if dc_cls_doc is not None else dc_cls.__doc__ or ''
-    return model
+    pass
 
 
 if sys.version_info >= (3, 8):
 
     def _is_field_cached_property(obj: 'Dataclass', k: str) -> bool:
-        return isinstance(getattr(type(obj), k, None), cached_property)
+        pass
 
 else:
 
     def _is_field_cached_property(obj: 'Dataclass', k: str) -> bool:
-        return False
+        pass
 
 
 def _dataclass_validate_values(self: 'Dataclass') -> None:
     # validation errors can occur if this function is called twice on an already initialised dataclass.
     # for example if Extra.forbid is enabled, it would consider __pydantic_initialised__ an invalid extra property
-    if getattr(self, '__pydantic_initialised__'):
-        return
-    if getattr(self, '__pydantic_has_field_info_default__', False):
-        # We need to remove `FieldInfo` values since they are not valid as input
-        # It's ok to do that because they are obviously the default values!
-        input_data = {
-            k: v
-            for k, v in self.__dict__.items()
-            if not (isinstance(v, FieldInfo) or _is_field_cached_property(self, k))
-        }
-    else:
-        input_data = {k: v for k, v in self.__dict__.items() if not _is_field_cached_property(self, k)}
-    d, _, validation_error = validate_model(self.__pydantic_model__, input_data, cls=self.__class__)
-    if validation_error:
-        raise validation_error
-    self.__dict__.update(d)
-    object.__setattr__(self, '__pydantic_initialised__', True)
+    pass
 
 
 def _dataclass_validate_assignment_setattr(self: 'Dataclass', name: str, value: Any) -> None:
-    if self.__pydantic_initialised__:
-        d = dict(self.__dict__)
-        d.pop(name, None)
-        known_field = self.__pydantic_model__.__fields__.get(name, None)
-        if known_field:
-            value, error_ = known_field.validate(value, d, loc=name, cls=self.__class__)
-            if error_:
-                raise ValidationError([error_], self.__class__)
-
-    object.__setattr__(self, name, value)
+    pass
 
 
 def is_builtin_dataclass(_cls: Type[Any]) -> bool:

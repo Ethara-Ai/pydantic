@@ -90,14 +90,14 @@ class CallbackGetCoreSchemaHandler(GetCoreSchemaHandler):
             return self.resolve_ref_schema(schema)
 
     def _get_types_namespace(self) -> NamespacesTuple:
-        return self._generate_schema._types_namespace
+        pass
 
     def generate_schema(self, source_type: Any, /) -> core_schema.CoreSchema:
         return self._generate_schema.generate_schema(source_type)
 
     @property
     def field_name(self) -> str | None:
-        return self._generate_schema.field_name_stack.get()
+        pass
 
     def resolve_ref_schema(self, maybe_ref_schema: core_schema.CoreSchema) -> core_schema.CoreSchema:
         """Resolves reference in the core schema.
